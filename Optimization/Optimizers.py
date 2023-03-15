@@ -1,3 +1,5 @@
+import numpy as np
+
 class Sgd:
     def __init__(self, learning_rate: float) -> None:
         self.learning_rate = learning_rate
@@ -22,6 +24,17 @@ class Adam:
         self.learning_rate = learning_rate
         self.mu = mu
         self.rho = rho
+        self.v = 0
+        self.r = 0
+        self.k = 0
 
     def calculate_update(self, weight_tensor, weight_gradient):
-        return 0
+        self.k = self.k + 1
+        self.v = self.mu * self.v + (1 - self.mu) * weight_gradient
+        self.r = self.rho * self.r + (1 - self.rho) * np.square(weight_gradient)
+
+        self.v = self.v/(1 - self.mu**self.k)
+        self.r = self.r/(1 - self.rho**self.k)
+
+        weight_tensor = weight_tensor - self.learning_rate * ( (self.v)/( np.sqrt(self.r) + np.finfo(float).eps) )
+        return weight_tensor
