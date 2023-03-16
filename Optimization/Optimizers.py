@@ -30,11 +30,13 @@ class Adam:
 
     def calculate_update(self, weight_tensor, weight_gradient):
         self.k = self.k + 1
+
         self.v = self.mu * self.v + (1 - self.mu) * weight_gradient
         self.r = self.rho * self.r + (1 - self.rho) * np.square(weight_gradient)
 
-        self.v = self.v/(1 - self.mu**self.k)
-        self.r = self.r/(1 - self.rho**self.k)
+        self.v_hat = (self.v)/(1 - self.mu**self.k)
+        self.r_hat = (self.r)/(1 - self.rho**self.k)
 
-        weight_tensor = weight_tensor - self.learning_rate * ( (self.v)/( np.sqrt(self.r) + np.finfo(float).eps) )
+
+        weight_tensor = weight_tensor - self.learning_rate *  (self.v_hat)/( np.sqrt(self.r_hat) + np.finfo(float).eps) 
         return weight_tensor
