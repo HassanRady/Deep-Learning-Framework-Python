@@ -28,7 +28,8 @@ class Conv(BaseLayer):
         self._optimizer = v
 
     def initialize(self, weights_initializer, bias_initializer):
-        self.weights = weights_initializer.initialize(self.weight_shape, self.input_channels, self.output_channels)
+        self.weights = weights_initializer.initialize(self.weight_shape, np.prod(self.convolution_shape),
+                                                       np.prod(self.convolution_shape) * self.output_channels)
         self.bias = bias_initializer.initialize(self.weight_shape, self.input_channels, self.output_channels)
 
     def get_shape_after_conv(self, x, f, p=1, s=1) -> int:
@@ -43,7 +44,6 @@ class Conv(BaseLayer):
                               self.get_shape_after_conv(input_height, self.kernel_size),
                               self.get_shape_after_conv(input_width, self.kernel_size))
         
-        self.initialize(UniformRandom(), UniformRandom())
 
         self.output = np.copy(self.bias)
         for i in range(self.num_kernels):
