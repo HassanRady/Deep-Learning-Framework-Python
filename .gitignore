@@ -200,3 +200,4 @@ test2.py
 *.csv
 
 tmp.py
+tmp*
