@@ -27,6 +27,14 @@ class Conv(BaseLayer):
     def optimizer(self, v):
         self._optimizer = v
 
+    @property
+    def gradient_weights(self):
+        return self._gradient_weights
+
+    @property
+    def gradient_bias(self):
+        return self._gradient_bias
+
     def initialize(self, weights_initializer, bias_initializer):
         self.weights = weights_initializer.initialize(self.weight_shape, np.prod(self.convolution_shape),
                                                        np.prod(self.convolution_shape) * self.output_channels)
