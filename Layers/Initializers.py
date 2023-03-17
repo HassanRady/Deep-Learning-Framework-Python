@@ -14,7 +14,7 @@ class UniformRandom:
     def __init__(self) -> None:
         pass
     
-    def initialize(self, weights_shape, fan_in, fan_out):
+    def initialize(self, weights_shape, ):
         weights = np.random.rand(*weights_shape)
         return weights
 
