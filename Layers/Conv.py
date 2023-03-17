@@ -17,7 +17,7 @@ class Conv(BaseLayer):
         self.output_channels = num_kernels
         self.kernel_size = convolution_shape[1]
 
-        self.weight_shape = (num_kernels, *convolution_shape[1:])
+        self.weight_shape = (num_kernels, *convolution_shape)
     
     @property
     def optimizer(self):
@@ -30,7 +30,7 @@ class Conv(BaseLayer):
     def initialize(self, weights_initializer, bias_initializer):
         self.weights = weights_initializer.initialize(self.weight_shape, np.prod(self.convolution_shape),
                                                        np.prod(self.convolution_shape) * self.output_channels)
-        self.bias = bias_initializer.initialize(self.weight_shape, self.input_channels, self.output_channels)
+        self.bias = bias_initializer.initialize(self.output_channels, self.input_channels, self.output_channels)
 
     def get_shape_after_conv(self, x, f, p=1, s=1) -> int:
         return 1 + (x - f + 2*p)/s
