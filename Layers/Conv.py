@@ -17,9 +17,10 @@ class Conv(BaseLayer):
 
         self.input_channels = convolution_shape[0]
         self.output_channels = num_kernels
-        self.kernel_size = convolution_shape[1]
+        self.kernel_size = convolution_shape[1:]
 
-        self.weight_shape = (num_kernels, *convolution_shape)
+        self.weight_shape = (num_kernels, self.input_channels, *self.kernel_size)
+        self.weights = np.random.randn(*self.weight_shape)
 
     @property
     def optimizer(self):
@@ -37,11 +38,6 @@ class Conv(BaseLayer):
     def gradient_bias(self):
         return self._gradient_bias
 
-    def initialize(self, weights_initializer, bias_initializer):
-        self.weights = weights_initializer.initialize(self.weight_shape, np.prod(self.convolution_shape),
-                                                      np.prod(self.convolution_shape) * self.output_channels)
-        self.bias = bias_initializer.initialize(
-            self.output_channels, self.input_channels, self.output_channels)
 
     def get_shape_after_conv(self, x, f, p=1, s=1) -> int:
         return 1 + (x - f + 2*p)/s
@@ -66,3 +62,9 @@ class Conv(BaseLayer):
 
     def backward(self, error_tensor):
         return error_tensor
+
+    def initialize(self, weights_initializer, bias_initializer):
+        self.weights = weights_initializer.initialize(self.weight_shape, np.prod(self.convolution_shape),
+                                                      np.prod(self.convolution_shape[1:]) * self.output_channels)
+        self.bias = bias_initializer.initialize(
+            self.output_channels, self.input_channels, self.output_channels)
