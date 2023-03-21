@@ -1,6 +1,9 @@
 import numpy as np
 from scipy import signal
 
+from logger import get_file_logger
+_logger = get_file_logger(__name__)
+
 from Layers.Base import BaseLayer
 from Layers.Initializers import UniformRandom
 
@@ -43,6 +46,9 @@ class Conv(BaseLayer):
         return 1 + (x - f + 2*p)/s
 
     def forward(self, input_tensor: np.array):  # input shape BXCXHXW
+
+        _logger.info(f"input_shape: {input_tensor.shape}")
+
         self.batch_size = input_tensor[0]
         input_height = input_tensor[2]
         input_width = input_tensor[3]
@@ -58,7 +64,7 @@ class Conv(BaseLayer):
                 self.output[i] += signal.correlate2d(
                     input_tensor[:, j, :, :], self.weights[i, j], "valid")
 
-        return input_tensor
+        return self.output
 
     def backward(self, error_tensor):
         return error_tensor
