@@ -1,11 +1,9 @@
+from Layers.Base import BaseLayer
 import numpy as np
 from scipy import signal
 
 from logger import get_file_logger
 _logger = get_file_logger(__name__)
-
-from Layers.Base import BaseLayer
-from Layers.Initializers import UniformRandom
 
 
 class Conv(BaseLayer):
@@ -22,8 +20,18 @@ class Conv(BaseLayer):
         self.output_channels = num_kernels
         self.kernel_size = convolution_shape[1:]
 
-        self.weight_shape = (num_kernels, self.input_channels, *self.kernel_size)
+        self.weight_shape = (
+            num_kernels, self.input_channels, *self.kernel_size)
         self.weights = np.random.randn(*self.weight_shape)
+        self.bias = np.random.randn(self.output_channels, 1)
+
+        self.is_1d_input = len(convolution_shape) < 4  
+
+    def initialize(self, weights_initializer, bias_initializer):
+        self.weights = weights_initializer.initialize(self.weight_shape, np.prod(self.convolution_shape),
+                                                      np.prod(self.convolution_shape[1:]) * self.output_channels)
+        self.bias = bias_initializer.initialize(
+            self.output_channels, self.input_channels, self.output_channels)
 
     @property
     def optimizer(self):
@@ -41,36 +49,25 @@ class Conv(BaseLayer):
     def gradient_bias(self):
         return self._gradient_bias
 
-
     def get_shape_after_conv(self, x, f, p=1, s=1) -> int:
         return 1 + (x - f + 2*p)/s
+    
+    def pad_img(img):
+        pass
+
+    
+    def convolve(self, slice, kernel, bias):
+        np.sum(slice * kernel) + bias 
 
     def forward(self, input_tensor: np.array):  # input shape BXCXHXW
+        self.N = len(input_tensor)
+        in_channels = input_tensor[1]
 
-        _logger.info(f"input_shape: {input_tensor.shape}")
 
-        self.batch_size = input_tensor[0]
-        input_height = input_tensor[2]
-        input_width = input_tensor[3]
 
-        self.output_shape = (self.batch_size, self.output_channels,
-                             self.get_shape_after_conv(
-                                 input_height, self.kernel_size),
-                             self.get_shape_after_conv(input_width, self.kernel_size))
-
-        self.output = np.copy(self.bias)
-        for i in range(self.num_kernels):
-            for j in range(self.input_depth):
-                self.output[i] += signal.correlate2d(
-                    input_tensor[:, j, :, :], self.weights[i, j], "valid")
 
         return self.output
 
     def backward(self, error_tensor):
         return error_tensor
 
-    def initialize(self, weights_initializer, bias_initializer):
-        self.weights = weights_initializer.initialize(self.weight_shape, np.prod(self.convolution_shape),
-                                                      np.prod(self.convolution_shape[1:]) * self.output_channels)
-        self.bias = bias_initializer.initialize(
-            self.output_channels, self.input_channels, self.output_channels)
