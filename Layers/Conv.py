@@ -25,7 +25,6 @@ class Conv(BaseLayer):
         self.weights = np.random.randn(*self.weight_shape)
         self.bias = np.random.randn(self.output_channels, 1)
 
-        self.is_1d_input = len(convolution_shape) < 4  
 
     def initialize(self, weights_initializer, bias_initializer):
         self.weights = weights_initializer.initialize(self.weight_shape, np.prod(self.convolution_shape),
@@ -49,19 +48,42 @@ class Conv(BaseLayer):
     def gradient_bias(self):
         return self._gradient_bias
 
-    def get_shape_after_conv(self, x, f, p=1, s=1) -> int:
+    def get_shape_after_conv(self, x, f, p=0, s=1) -> int:
         return 1 + (x - f + 2*p)/s
     
-    def pad_img(img):
-        pass
+    def pad_img(img, dim1, dim2):
+        return np.pad(img, ((0, 0), (0, 0), (dim1, dim1), (dim2, dim2)), mode="constant")
 
+    def pad_1d(x):
+        np.pad(x, (start, end), mode="constant")
+
+    def get_num_of_pad_needed_to_same(self, dim_len, kernel_size, stride):
+        return (dim_len*(stride - 1) + kernel_size - stride)/2
     
     def convolve(self, slice, kernel, bias):
         np.sum(slice * kernel) + bias 
 
+    def get_output_shape(self, input_tensor):
+        self.is_1d_input = len(input_tensor) < 4
+        if not self.is_1d_input:
+            in_channels = input_tensor[1]
+            input_hight = input_tensor[2]
+            input_width = input_tensor[3]
+            
+            output_hight = self.get_shape_after_conv(input_hight, self.kernel_size)
+
+
+
+
     def forward(self, input_tensor: np.array):  # input shape BXCXHXW
         self.N = len(input_tensor)
-        in_channels = input_tensor[1]
+
+        for sample in input_tensor:
+            for kernel in self.weights:
+                for in_channel in sample:
+                    pass
+                    # output_array[sample, kernel, ] += signal.convolve2d(in_channel, kernel, mode='same', fillvalue=0)
+
 
 
 
