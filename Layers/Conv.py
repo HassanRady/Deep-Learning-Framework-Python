@@ -14,14 +14,12 @@ class Conv(BaseLayer):
         self.stride_shape = stride_shape
         self.convolution_shape = convolution_shape
 
-        self.batch_size = 1
-
-        self.input_channels = convolution_shape[0]
+        self.input_channels = self.convolution_shape[0]
         self.output_channels = num_kernels
-        self.kernel_size = convolution_shape[1:]
+        self.kernel_size = self.convolution_shape[1:]
 
         self.weight_shape = (
-            num_kernels, self.input_channels, *self.kernel_size)
+            self.output_channels, self.input_channels, *self.kernel_size)
         self.weights = np.random.randn(*self.weight_shape)
         self.bias = np.random.randn(self.output_channels, 1)
 
@@ -52,37 +50,53 @@ class Conv(BaseLayer):
         return 1 + (x - f + 2*p)/s
     
     def pad_img(img, dim1, dim2):
-        return np.pad(img, ((0, 0), (0, 0), (dim1, dim1), (dim2, dim2)), mode="constant")
+        return np.pad(img, ((dim1, dim1), (dim2, dim2)), mode="constant")
 
-    def pad_1d(x):
-        np.pad(x, (start, end), mode="constant")
+    def pad_1d(x, start, end):
+        return np.pad(x, (start, end), mode="constant")
 
-    def get_num_of_pad_needed_to_same(self, dim_len, kernel_size, stride):
-        return (dim_len*(stride - 1) + kernel_size - stride)/2
+    def get_num_of_pad_needed_to_same_img(self, dim_len, kernel_size, stride):
+        return (dim_len*(stride - 1) + kernel_size - stride)//2
     
     def convolve(self, slice, kernel, bias):
-        np.sum(slice * kernel) + bias 
+        return np.sum(slice * kernel) + bias 
 
-    def get_output_shape(self, input_tensor):
-        self.is_1d_input = len(input_tensor) < 4
-        if not self.is_1d_input:
-            in_channels = input_tensor[1]
-            input_hight = input_tensor[2]
-            input_width = input_tensor[3]
-            
-            output_hight = self.get_shape_after_conv(input_hight, self.kernel_size)
+    def get_dims_for_output_img(self, input_tensor):
+        self.batch_size = input_tensor.shape[0]
+        input_size_dim1 = input_tensor.shape[2]
+        input_size_dim2 = input_tensor.shape[3]
+        kernel_size_dim1 = self.kernel_size[0]
+        kernel_size_dim2 = self.kernel_size[1]
+        stride_size_dim1 = self.stride_shape[0]
+        stride_size_dim2 = self.stride_shape[1]
 
+        return input_size_dim1, input_size_dim2, kernel_size_dim1, kernel_size_dim2, stride_size_dim1, stride_size_dim2
 
+    def get_output_shape_for_img(self, input_size_dim1, input_size_dim2, kernel_size_dim1, kernel_size_dim2, stride_size_dim1, stride_size_dim2, pad_size_dim1, pad_size_dim2):
+        
+        output_dim1 = self.get_shape_after_conv(input_size_dim1, kernel_size_dim1, pad_size_dim1, stride_size_dim1)
+        output_dim2 = self.get_shape_after_conv(input_size_dim2, kernel_size_dim2, pad_size_dim2, stride_size_dim2)
 
+        return (self.N, self.output_channels, output_dim1, output_dim2)
 
-    def forward(self, input_tensor: np.array):  # input shape BXCXHXW
-        self.N = len(input_tensor)
+    def forward(self, input_tensor: np.array):  # input shape BATCHxCHANNELSxHIGHTxWIDTH
+        input_size_dim1, input_size_dim2, kernel_size_dim1, kernel_size_dim2, stride_size_dim1, stride_size_dim2 = self.get_dims_for_output_img(input_tensor)
+        pad_size_dim1 = self.get_num_of_pad_needed_to_same_img(input_size_dim1, kernel_size_dim1, stride_size_dim1)
+        pad_size_dim2 = self.get_num_of_pad_needed_to_same_img(input_size_dim2, kernel_size_dim2, stride_size_dim2)
+        output_shape = self.get_output_shape_for_img(input_size_dim1, input_size_dim2, kernel_size_dim1, kernel_size_dim2, stride_size_dim1, stride_size_dim2, pad_size_dim1, pad_size_dim2)
+        
+        output = np.zeros(output_shape)
 
-        for sample in input_tensor:
-            for kernel in self.weights:
-                for in_channel in sample:
-                    pass
-                    # output_array[sample, kernel, ] += signal.convolve2d(in_channel, kernel, mode='same', fillvalue=0)
+        for n in range(self.N):
+            one_sample = input_tensor[n]
+            input_in_channels = one_sample.shape[0]
+            one_sample_padded = self.pad_img(one_sample, pad_size_dim1, pad_size_dim2)
+
+            for out_channel in range(self.output_channels):
+                kernel = self.weights[out_channel]
+
+                for in_channel in range(input_in_channels):
+                    kernel_for_channel = kernel[in_channel]
 
 
 
