@@ -20,11 +20,19 @@ class Conv(BaseLayer):
         self.trainable = True
 
         self.stride_shape = stride_shape
+        self.stride_size_dim1 = self.stride_shape[0]
+        self.stride_size_dim2 = self.stride_shape[1]
+
         self.convolution_shape = convolution_shape
 
         self.input_channels = self.convolution_shape[0]
         self.output_channels = num_kernels
         self.kernel_size = self.convolution_shape[1:]
+        self.kernel_size_dim1 = self.kernel_size[0]
+        self.kernel_size_dim2 = self.kernel_size[1]
+
+        self.pad_size_dim1 = self.get_pad_size(self.kernel_size_dim1, )
+        self.pad_size_dim2 = self.get_pad_size(self.kernel_size_dim2, )
 
         self.weight_shape = (
             self.output_channels, self.input_channels, *self.kernel_size)
@@ -70,45 +78,28 @@ class Conv(BaseLayer):
     def convolve(self, slice, kernel, bias):
         return np.sum(slice * kernel) + bias
 
-    def get_dims_for_output_img(self, input_tensor):
-        self.batch_size = input_tensor.shape[0]
-        input_size_dim1 = input_tensor.shape[2]
-        input_size_dim2 = input_tensor.shape[3]
-
-        kernel_size_dim1 = self.kernel_size[0]
-        kernel_size_dim2 = self.kernel_size[1]
-
-        stride_size_dim1 = self.stride_shape[0]
-        stride_size_dim2 = self.stride_shape[1]
-
-        return input_size_dim1, input_size_dim2, kernel_size_dim1, kernel_size_dim2, stride_size_dim1, stride_size_dim2
-
-    def get_output_shape_for_img(self, input_size_dim1, input_size_dim2, kernel_size_dim1, kernel_size_dim2, stride_size_dim1, stride_size_dim2, pad_size_dim1, pad_size_dim2):
+    def get_output_shape_for_img(self, input_size_dim1, input_size_dim2):
 
         output_dim1 = self.get_shape_after_conv(
-            input_size_dim1, kernel_size_dim1, pad_size_dim1, stride_size_dim1)
+            input_size_dim1, self.kernel_size_dim1, self.pad_size_dim1, self.stride_size_dim1)
         output_dim2 = self.get_shape_after_conv(
-            input_size_dim2, kernel_size_dim2, pad_size_dim2, stride_size_dim2)
+            input_size_dim2, self.kernel_size_dim2, self.pad_size_dim2, self.stride_size_dim2)
 
         return (self.batch_size, self.output_channels, output_dim1, output_dim2)
 
-    def get_slice(self, image, output_dim1, output_dim2, stride_size_dim1, stride_size_dim2, kernel_size_dim1, kernel_size_dim2):
+    def get_slice(self, image, output_dim1, output_dim2):
         for i in range(output_dim1):
             for j in range(output_dim2):
-                start_dim1 = i * stride_size_dim1
-                end_dim1 = i * stride_size_dim1 + kernel_size_dim1
-                start_dim2 = j * stride_size_dim2
-                end_dim2 = j * stride_size_dim2 + kernel_size_dim2
+                start_dim1 = i * self.stride_size_dim1
+                end_dim1 = i * self.stride_size_dim1 + self.kernel_size_dim1
+                start_dim2 = j * self.stride_size_dim2
+                end_dim2 = j * self.stride_size_dim2 + self.kernel_size_dim2
                 slice = image[:, start_dim1:end_dim1, start_dim2:end_dim2]
                 yield slice, i, j
 
     def forward(self, input_tensor: np.array):  # input shape BATCHxCHANNELSxHIGHTxWIDTH
-        input_size_dim1, input_size_dim2, kernel_size_dim1, kernel_size_dim2, stride_size_dim1, stride_size_dim2 = self.get_dims_for_output_img(
-            input_tensor)
-        pad_size_dim1 = self.get_pad_size(kernel_size_dim1, )
-        pad_size_dim2 = self.get_pad_size(kernel_size_dim2, )
-        output_shape = self.get_output_shape_for_img(
-            input_size_dim1, input_size_dim2, kernel_size_dim1, kernel_size_dim2, stride_size_dim1, stride_size_dim2, pad_size_dim1, pad_size_dim2)
+        (self.batch_size, _, input_size_dim1, input_size_dim2) = input_tensor.shape
+        output_shape = self.get_output_shape_for_img(input_size_dim1, input_size_dim2)
         (_, _, output_dim1, output_dim2) = output_shape
 
         self.forward_output = np.zeros(output_shape)
@@ -116,17 +107,16 @@ class Conv(BaseLayer):
         for n in range(self.batch_size):
             one_sample = input_tensor[n]
             one_sample_padded = self.pad_img(
-                one_sample, pad_size_dim1, pad_size_dim2)
+                one_sample, self.pad_size_dim1, self.pad_size_dim2)
 
             for out_channel in range(self.output_channels):
                 kernel = self.weights[out_channel]
                 bias = self.bias[out_channel]
 
-                for slice, i, j in self.get_slice(one_sample_padded, output_dim1, output_dim2, stride_size_dim1, stride_size_dim2, kernel_size_dim1, kernel_size_dim2):
+                for slice, i, j in self.get_slice(one_sample_padded, output_dim1, output_dim2):
                     self.forward_output[n, out_channel, i,
                                         j] = self.convolve(slice, kernel, bias)
 
-        _logger.debug(self.forward_output.shape)
         return self.forward_output
 
     def backward(self, error_tensor):
