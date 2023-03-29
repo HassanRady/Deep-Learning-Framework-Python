@@ -99,7 +99,8 @@ class Conv(BaseLayer):
 
     def forward(self, input_tensor: np.array):  # input shape BATCHxCHANNELSxHIGHTxWIDTH
         (self.batch_size, _, input_size_dim1, input_size_dim2) = input_tensor.shape
-        output_shape = self.get_output_shape_for_img(input_size_dim1, input_size_dim2)
+        output_shape = self.get_output_shape_for_img(
+            input_size_dim1, input_size_dim2)
         (_, _, output_dim1, output_dim2) = output_shape
 
         self.forward_output = np.zeros(output_shape)
