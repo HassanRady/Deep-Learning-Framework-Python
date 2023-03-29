@@ -66,9 +66,13 @@ class Conv(BaseLayer):
         return 1 + (dim_size - kernel_size + start_pad + end_pad)//stride
 
     def get_pad_size(self, kernel_size):
-        start_pad = (kernel_size - 1)//2
-        end_pad = kernel_size - start_pad - 1
-        return (start_pad, end_pad)
+        if kernel_size % 2 == 1:
+            start_pad = (kernel_size - 1)//2
+            return (start_pad, start_pad)
+        else:
+            start_pad = kernel_size//2 - 1
+            end_pad = kernel_size//2
+            return (start_pad, end_pad)
 
     def pad_img(self, img, dim1, dim2):
         (start_pad_dim1, end_pad_dim1) = dim1
