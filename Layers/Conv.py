@@ -113,8 +113,11 @@ class Conv(BaseLayer):
 
     def forward(self, input_tensor: np.array):  # input shape BATCHxCHANNELSxHIGHTxWIDTH
         self.input_tensor = input_tensor
+
         self.input_tensor_padded = self.pad_img(input_tensor, self.pad_size_dim1, self.pad_size_dim2)
+
         (self.batch_size, _, input_size_dim1, input_size_dim2) = input_tensor.shape
+        
         self.forward_output_shape = self.get_output_shape_for_img(
             input_size_dim1, input_size_dim2)
         (_, _, output_dim1, output_dim2) = self.forward_output_shape
