@@ -42,9 +42,11 @@ class NeuralNetwork:
         self.layers.append(layer)
 
     def train(self, iterations):
-        for i in range(iterations):
+        for i in range(1, iterations+1):
+            print(f"{'-'*50}Epoch {i}{'-'*50}")
             loss = self.forward()
             self.loss.append(loss)
+            print(f"Train Loss: {loss:.2}")
             self.backward()
         return loss
 
