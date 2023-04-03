@@ -31,15 +31,14 @@ class NeuralNetwork:
     def backward(self, ):
         y = self.loss_layer.backward(self.label_tensor)
 
-        for layer in self.layers:
+        for layer in reversed(self.layers):
             output = layer.backward(y)
-            # y = output
-        return output
+            y = output
             
     def append_layer(self, layer):
         if layer.trainable:
             layer.optimizer = copy.deepcopy(self.optimizer)
-        # print(layer.optimizer)
+            layer.initialize(self.weights_initializer, self.bias_initializer)
         self.layers.append(layer)
 
     def train(self, iterations):
