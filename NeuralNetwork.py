@@ -3,7 +3,8 @@ import copy
 class NeuralNetwork:
     def __init__(self, optimizer, weights_initializer, bias_initializer) -> None:
         self.optimizer = optimizer
-        self.loss = []
+        self.train_losses = []
+        self.val_losses = []
         self.layers = []
         self.data_layer = None
         self.loss_layer = None
@@ -11,23 +12,12 @@ class NeuralNetwork:
         self.weights_initializer = weights_initializer
         self.bias_initializer = bias_initializer
 
-    def forward(self, ):
-        x, y = self.data_layer.next()   
-        self.label_tensor = y 
-
+    def forward(self, x, y):
         for layer in self.layers:
             output = layer.forward(x)
             x = output
-
-        return self.loss_layer.forward(output, y)
+        return output
     
-    def test_forward(self, x):
-        for layer in self.layers:
-            output = layer.forward(x)
-            x = output
-        return x
-        
-
     def backward(self, ):
         y = self.loss_layer.backward(self.label_tensor)
 
@@ -41,15 +31,36 @@ class NeuralNetwork:
             layer.initialize(self.weights_initializer, self.bias_initializer)
         self.layers.append(layer)
 
-    def train(self, iterations):
-        for i in range(1, iterations+1):
-            print(f"{'-'*50}Epoch {i}{'-'*50}")
-            loss = self.forward()
-            self.loss.append(loss)
-            print(f"Train Loss: {loss:.2}")
-            self.backward()
-        return loss
+    def fit(self, epoch, train_data, val_data):
+        pass
 
-    def test(self, x):
-        return self.test_forward(x)
+
+    
+    def train_step(self, x, y):
+        output = self.forward(x)
+        loss = self.loss_layer.forward(output, y)
+        self.backward()
+        return loss
+    
+    def eval_step(self, x, y):
+        output = self.forward(x)
+        loss = self.loss_layer.forward(output, y)
+        return loss
+    
+    def train_epoch(self):
+        loss = 0.0
+        for x, y in self.data:
+            loss += self.train_step(x, y)
+        epoch_loss = loss/len(self.data)
+        self.train_losses.append(epoch_loss)
+        return epoch_loss
+
+    def eval_epoch(self):
+        loss = 0.0
+        for x, y in self.data:
+            loss += self.eval_step(x, y)
+        epoch_loss = loss/len(self.data)
+        self.val_losses.append(epoch_loss)
+        return epoch_loss
+
 
