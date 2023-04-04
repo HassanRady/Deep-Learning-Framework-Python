@@ -15,6 +15,41 @@ _logger = get_file_logger(__name__)
 
 
 class Conv(BaseLayer):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, padding):
+        super().__init__()
+        self.trainable = True
+        self._optimizer = None
+
+        if isinstance(stride, int):
+            stride = self.to_tuple(stride)
+        self.stride_shape = stride
+        self.stride_size_dim1 = self.stride_shape[0]
+        self.stride_size_dim2 = self.stride_shape[1]
+
+
+
+        self.convolution_shape = convolution_shape
+
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+
+        if isinstance(kernel_size, int):
+            kernel_size = self.to_tuple(kernel_size)
+        self.kernel_size = kernel_size
+        self.kernel_size_dim1 = self.kernel_size[0]
+        self.kernel_size_dim2 = self.kernel_size[1]
+        self.is_reduction_kernel = self.kernel_size == (1, 1)
+
+        self.pad_size_dim1 = self.get_pad_size(self.kernel_size_dim1)
+        self.pad_size_dim2 = self.get_pad_size(self.kernel_size_dim2)
+
+        self.weight_shape = (
+            self.out_channels, self.in_channels, *self.kernel_size)
+        self.weights = np.random.randn(*self.weight_shape)
+        self.bias = np.random.randn(self.out_channels, 1)
+
+
+
     def __init__(self, stride_shape: int or tuple, convolution_shape: list, num_kernels: int):
         super().__init__()
         self.trainable = True
@@ -26,8 +61,8 @@ class Conv(BaseLayer):
 
         self.convolution_shape = convolution_shape
 
-        self.input_channels = self.convolution_shape[0]
-        self.output_channels = num_kernels
+        self.in_channels = self.convolution_shape[0]
+        self.out_channels = num_kernels
         self.kernel_size = self.convolution_shape[1:]
         self.kernel_size_dim1 = self.kernel_size[0]
         self.kernel_size_dim2 = self.kernel_size[1]
@@ -37,15 +72,19 @@ class Conv(BaseLayer):
         self.pad_size_dim2 = self.get_pad_size(self.kernel_size_dim2)
 
         self.weight_shape = (
-            self.output_channels, self.input_channels, *self.kernel_size)
+            self.out_channels, self.in_channels, *self.kernel_size)
         self.weights = np.random.randn(*self.weight_shape)
-        self.bias = np.random.randn(self.output_channels, 1)
+        self.bias = np.random.randn(self.out_channels, 1)
+
+
+    def to_tuple(self, int_value):
+        return (int_value, int_value)
 
     def initialize(self, weights_initializer, bias_initializer):
         self.weights = weights_initializer.initialize(self.weight_shape, np.prod(self.convolution_shape),
-                                                      np.prod(self.convolution_shape[1:]) * self.output_channels)
+                                                      np.prod(self.convolution_shape[1:]) * self.out_channels)
         self.bias = bias_initializer.initialize(
-            self.output_channels, self.input_channels, self.output_channels)
+            self.out_channels, self.in_channels, self.out_channels)
 
     @property
     def optimizer(self):
@@ -99,7 +138,7 @@ class Conv(BaseLayer):
         output_dim2 = self.get_shape_after_conv(
             input_size_dim2, self.kernel_size_dim2, self.pad_size_dim2, self.stride_size_dim2)
 
-        return (self.batch_size, self.output_channels, output_dim1, output_dim2)
+        return (self.batch_size, self.out_channels, output_dim1, output_dim2)
 
     def generate_slice(self, image, output_dim1, output_dim2):
         for i in range(output_dim1):
@@ -126,7 +165,7 @@ class Conv(BaseLayer):
 
         for n in range(self.batch_size):
             one_sample_padded = self.input_tensor_padded[n]
-            for out_channel in range(self.output_channels):
+            for out_channel in range(self.out_channels):
                 kernel = self.weights[out_channel]
                 bias = self.bias[out_channel]
 
@@ -147,7 +186,7 @@ class Conv(BaseLayer):
         for n in range(self.batch_size):
             one_sample_padded = self.input_tensor_padded[n]
 
-            for out_channel in range(self.output_channels):
+            for out_channel in range(self.out_channels):
                 for slice, i, j in self.generate_slice(one_sample_padded, output_dim1, output_dim2):
                     start_dim1 = i * self.stride_size_dim1
                     end_dim1 = i * self.stride_size_dim1 + self.kernel_size_dim1
