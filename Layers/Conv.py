@@ -77,17 +77,17 @@ class Conv(BaseLayer):
         end_pad = kernel_size//2
         return (start_pad, end_pad)
 
-    def pad_img(self, img, dim1, dim2):
+    def pad_img_same(self, imgs, dim1, dim2):
         (start_pad_dim1, end_pad_dim1) = dim1
         (start_pad_dim2, end_pad_dim2) = dim2
-        return np.pad(img, ((0, 0), (0, 0), (start_pad_dim1, end_pad_dim1), (start_pad_dim2, end_pad_dim2)), mode="constant")
-    
-    def remove_pad(self, img):
+        return np.pad(imgs, ((0, 0), (0, 0), (start_pad_dim1, end_pad_dim1), (start_pad_dim2, end_pad_dim2)), mode="constant")
+
+    def remove_pad(self, imgs):
         (start_pad_dim1, end_pad_dim1) = self.pad_size_dim1
         (start_pad_dim2, end_pad_dim2) = self.pad_size_dim2
         if self.is_reduction_kernel:
-            return img
-        return img[:, start_pad_dim1:-end_pad_dim1, start_pad_dim2:-end_pad_dim2]
+            return imgs
+        return imgs[:, start_pad_dim1:-end_pad_dim1, start_pad_dim2:-end_pad_dim2]
 
     def convolve(self, slice, kernel, bias):
         return np.sum(slice * kernel) + bias
@@ -113,15 +113,13 @@ class Conv(BaseLayer):
 
     def forward(self, input_tensor: np.array):  # input shape BATCHxCHANNELSxHIGHTxWIDTH
         self.input_tensor = input_tensor
-
-        self.input_tensor_padded = self.pad_img(input_tensor, self.pad_size_dim1, self.pad_size_dim2)
-
         (self.batch_size, _, input_size_dim1, input_size_dim2) = input_tensor.shape
-        
+        self.input_tensor_padded = self.pad_img_same(
+            input_tensor, self.pad_size_dim1, self.pad_size_dim2)
+
         self.forward_output_shape = self.get_output_shape_for_img(
             input_size_dim1, input_size_dim2)
         (_, _, output_dim1, output_dim2) = self.forward_output_shape
-
         self.forward_output = np.zeros(self.forward_output_shape)
 
         for n in range(self.batch_size):
@@ -154,14 +152,18 @@ class Conv(BaseLayer):
                     start_dim2 = j * self.stride_size_dim2
                     end_dim2 = j * self.stride_size_dim2 + self.kernel_size_dim2
 
-                    self._gradient_weights[out_channel] += slice * error_tensor[n, out_channel, i, j]
-                    self._gradient_bias[out_channel] += error_tensor[n, out_channel, i, j]
-                    gradient_input[n, :, start_dim1:end_dim1, start_dim2:end_dim2] += error_tensor[n, out_channel, i, j] * self.weights[out_channel]
-            
+                    self._gradient_weights[out_channel] += slice * \
+                        error_tensor[n, out_channel, i, j]
+                    self._gradient_bias[out_channel] += error_tensor[n,
+                                                                     out_channel, i, j]
+                    gradient_input[n, :, start_dim1:end_dim1, start_dim2:end_dim2] += error_tensor[n,
+                                                                                                   out_channel, i, j] * self.weights[out_channel]
+
             output[n] = self.remove_pad(gradient_input[n])
-                    
+
         if self.optimizer:
-            self.weights = self.optimizer.calculate_update(self.weights, self.gradient_weights)
+            self.weights = self.optimizer.calculate_update(
+                self.weights, self.gradient_weights)
 
         return output
 
