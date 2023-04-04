@@ -754,7 +754,7 @@ class TestPooling(unittest.TestCase):
 
 
 class TestNeuralNetwork2(unittest.TestCase):
-    plot = False
+    plot = True
     directory = 'plots/'
     log = 'log.txt'
 
@@ -898,6 +898,9 @@ class TestNeuralNetwork2(unittest.TestCase):
         net.loss_layer = Loss.CrossEntropyLoss()
 
         cl_1 = Conv.Conv(conv_stride_shape, convolution_shape, num_kernels)
+        
+        cl_1 = Conv.Conv(in_channels, convolution_shape, num_kernels)
+
         net.append_layer(cl_1)
         cl_1_output_shape = (*input_image_shape[1:], num_kernels)
         net.append_layer(ReLU.ReLU())
