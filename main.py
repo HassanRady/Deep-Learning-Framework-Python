@@ -8,3 +8,14 @@ from Layers.SoftMax import SoftMax
 from Optimization.Loss import CrossEntropyLoss
 from Optimization.Optimizers import Adam, SgdWithMomentum, Sgd
 
+
+model = [
+    Conv(in_channels=, out_channels=, kernel=, stride=, padding=),
+    ReLU(),
+    Pooling(kernel=None, stride=None),
+    Flatten(),
+    FullConnected(input_size=, output_size=),
+    FullConnected(input_size=, output_size=),
+    SoftMax()
+]
+
