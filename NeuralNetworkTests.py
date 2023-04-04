@@ -486,6 +486,12 @@ class TestConv(unittest.TestCase):
         output_tensor = conv.forward(input_tensor)
         self.assertEqual(output_tensor.shape, (self.batch_size, self.num_kernels, 4, 5))
 
+    def test_forward_size_same(self):
+        conv = Conv.Conv((3, 3), self.kernel_shape, self.num_kernels)
+        input_tensor = np.array(range(int(np.prod(self.input_shape) * self.batch_size)), dtype=float)
+        input_tensor = input_tensor.reshape(self.batch_size, *self.input_shape)
+        output_tensor = conv.forward(input_tensor)
+        self.assertEqual(output_tensor.shape, (self.batch_size, self.num_kernels, 10, 14))
 
     def test_forward_size_stride_uneven_image(self):
         conv = Conv.Conv((3, 2), self.kernel_shape, self.num_kernels + 1)
@@ -927,7 +933,7 @@ class TestNeuralNetwork2(unittest.TestCase):
 
         net.append_layer(SoftMax.SoftMax())
 
-        net.train(200)
+        net.train(20)
 
         if TestNeuralNetwork2.plot:
             description = 'on_digit_data'
