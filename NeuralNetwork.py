@@ -46,7 +46,7 @@ class NeuralNetwork:
             print(f"{'-'*50}Epoch {i}{'-'*50}")
             loss = self.forward()
             self.loss.append(loss)
-            print(f"Train Loss: {loss:.2}")
+            print(f"Train Loss: {loss:.2f}")
             self.backward()
         return loss
 
