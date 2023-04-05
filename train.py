@@ -38,18 +38,20 @@ class Trainer:
             layer.initialize(self.weights_initializer, self.bias_initializer)
         self.model.append(layer)
 
-    def fit(self, epoch, train_data, val_data):
+    # def fit(self, epoch, train_data, val_data):
+    def fit(self, epoch, train_data, ):
+        self.train_data = train_data
         for i in range(1, epoch+1):
             print(f"{'-'*50}Epoch {i}{'-'*50}")
 
             train_loss = self.train_epoch()
-            val_loss = self.eval_epoch()
+            # val_loss = self.eval_epoch()
 
             self.train_losses.append(train_loss)
-            self.val_losses.append(val_loss)
+            # self.val_losses.append(val_loss)
 
             print(f"train loss: {train_loss:.2f}")
-            print(f"val loss: {val_loss:.2f}")
+            # print(f"val loss: {val_loss:.2f}")
 
     def train_step(self, x, y):
         output = self.forward(x)
@@ -64,7 +66,7 @@ class Trainer:
 
     def train_epoch(self):
         loss = 0.0
-        for x, y in self.data:
+        for x, y in self.train_data:
             loss += self.train_step(x, y)
         epoch_loss = loss/len(self.data)
         self.train_losses.append(epoch_loss)
