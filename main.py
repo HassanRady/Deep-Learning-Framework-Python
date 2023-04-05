@@ -23,12 +23,12 @@ model = [
     SoftMax(),
 ]
 
-data = DigitData(50)
+x, y = DigitData(200).next()
 
-trainer = Trainer(Adam(5e-3, 0.98, 0.999),
+trainer = Trainer(model, Adam(5e-3, 0.98, 0.999),
                   He(),
                   Constant(0.1))
 
 trainer.loss_layer = CrossEntropyLoss()
 
-trainer.fit(200, data)
+trainer.fit(200, [[x, y]])
