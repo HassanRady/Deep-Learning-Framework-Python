@@ -204,3 +204,4 @@ tmp*
 progress.py
 .venv
 log.txt
+plots/
