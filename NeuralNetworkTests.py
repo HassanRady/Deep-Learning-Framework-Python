@@ -833,9 +833,9 @@ class TestNeuralNetwork2(unittest.TestCase):
         net = NeuralNetwork.NeuralNetwork(Optimizers.Sgd(1),
                                           Initializers.Constant(0.123),
                                           Initializers.Constant(0.123))
-        fcl_1 = FullyConnected.FullyConnected(1, 1)
+        fcl_1 = FullyConnected.Linear(1, 1)
         net.append_layer(fcl_1)
-        fcl_2 = FullyConnected.FullyConnected(1, 1)
+        fcl_2 = FullyConnected.Linear(1, 1)
         net.append_layer(fcl_2)
 
         self.assertEqual(len(net.layers), 2)
@@ -850,10 +850,10 @@ class TestNeuralNetwork2(unittest.TestCase):
         input_size = 4
         net.data_layer = Helpers.IrisData(50)
         net.loss_layer = Loss.CrossEntropyLoss()
-        fcl_1 = FullyConnected.FullyConnected(input_size, categories)
+        fcl_1 = FullyConnected.Linear(input_size, categories)
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.FullyConnected(categories, categories)
+        fcl_2 = FullyConnected.Linear(categories, categories)
         net.append_layer(fcl_2)
         net.append_layer(SoftMax.SoftMax())
 
@@ -870,10 +870,10 @@ class TestNeuralNetwork2(unittest.TestCase):
         input_size = 4
         net.data_layer = Helpers.IrisData(100)
         net.loss_layer = Loss.CrossEntropyLoss()
-        fcl_1 = FullyConnected.FullyConnected(input_size, categories)
+        fcl_1 = FullyConnected.Linear(input_size, categories)
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.FullyConnected(categories, categories)
+        fcl_2 = FullyConnected.Linear(categories, categories)
         net.append_layer(fcl_2)
         net.append_layer(SoftMax.SoftMax())
 
@@ -903,10 +903,10 @@ class TestNeuralNetwork2(unittest.TestCase):
         input_size = 4
         net.data_layer = Helpers.IrisData(100)
         net.loss_layer = Loss.CrossEntropyLoss()
-        fcl_1 = FullyConnected.FullyConnected(input_size, categories)
+        fcl_1 = FullyConnected.LinearLinear(input_size, categories)
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.FullyConnected(categories, categories)
+        fcl_2 = FullyConnected.LinearLinear(categories, categories)
         net.append_layer(fcl_2)
         net.append_layer(SoftMax.SoftMax())
 
@@ -936,10 +936,10 @@ class TestNeuralNetwork2(unittest.TestCase):
         input_size = 4
         net.data_layer = Helpers.IrisData(100)
         net.loss_layer = Loss.CrossEntropyLoss()
-        fcl_1 = FullyConnected.FullyConnected(input_size, categories)
+        fcl_1 = FullyConnected.Linear(input_size, categories)
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.FullyConnected(categories, categories)
+        fcl_2 = FullyConnected.Linear(categories, categories)
         net.append_layer(fcl_2)
         net.append_layer(SoftMax.SoftMax())
 
@@ -988,13 +988,13 @@ class TestNeuralNetwork2(unittest.TestCase):
 
         net.append_layer(Flatten.Flatten())
 
-        fcl_1 = FullyConnected.FullyConnected(
+        fcl_1 = FullyConnected.Linear(
             fcl_1_input_size, int(fcl_1_input_size/2.))
         net.append_layer(fcl_1)
 
         net.append_layer(ReLU.ReLU())
 
-        fcl_2 = FullyConnected.FullyConnected(
+        fcl_2 = FullyConnected.Linear(
             int(fcl_1_input_size/2.), categories)
         net.append_layer(fcl_2)
 
