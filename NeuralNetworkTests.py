@@ -721,7 +721,7 @@ class TestConv2d(unittest.TestCase):
             self.kernel_shape[:]) * self.num_kernels)
 
 
-class TestPooling(unittest.TestCase):
+class TestMaxPool2d(unittest.TestCase):
     plot = False
     directory = 'plots/'
 
@@ -746,52 +746,52 @@ class TestPooling(unittest.TestCase):
         self.plot_shape = (self.input_shape[0], np.prod(self.input_shape[1:]))
 
     def test_trainable(self):
-        layer = Pooling.Pooling((2, 2), (2, 2))
+        layer = Pooling.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
         self.assertFalse(layer.trainable)
 
     def test_shape(self):
-        layer = Pooling.Pooling((2, 2), (2, 2))
+        layer = Pooling.MaxPool2d(stride=(2, 2), kernel_size=(2, 2))
         result = layer.forward(self.input_tensor)
         expected_shape = np.array([self.batch_size, 2, 2, 3])
         self.assertEqual(
             np.sum(np.abs(np.array(result.shape) - expected_shape)), 0)
 
     def test_overlapping_shape(self):
-        layer = Pooling.Pooling((2, 1), (2, 2))
+        layer = Pooling.MaxPool2d(stride=(2, 1), kernel_size=(2, 2))
         result = layer.forward(self.input_tensor)
         expected_shape = np.array([self.batch_size, 2, 2, 6])
         self.assertEqual(
             np.sum(np.abs(np.array(result.shape) - expected_shape)), 0)
 
     def test_subsampling_shape(self):
-        layer = Pooling.Pooling((3, 2), (2, 2))
+        layer = Pooling.MaxPool2d(stride=(3, 2), kernel_size=(2, 2))
         result = layer.forward(self.input_tensor)
         expected_shape = np.array([self.batch_size, 2, 1, 3])
         self.assertEqual(
             np.sum(np.abs(np.array(result.shape) - expected_shape)), 0)
 
     def test_gradient_stride(self):
-        self.layers[0] = Pooling.Pooling((2, 2), (2, 2))
+        self.layers[0] = Pooling.MaxPool2d(stride=(2, 2), kernel_size=(2, 2))
         difference = Helpers.gradient_check(
             self.layers, self.input_tensor, self.label_tensor)
         self.assertLessEqual(np.sum(difference), 1e-6)
 
     def test_gradient_overlapping_stride(self):
         label_tensor = np.random.random((self.batch_size, 24))
-        self.layers[0] = Pooling.Pooling((2, 1), (2, 2))
+        self.layers[0] = Pooling.MaxPool2d(stride=(2, 1), kernel_size=(2, 2))
         difference = Helpers.gradient_check(
             self.layers, self.input_tensor, label_tensor)
         self.assertLessEqual(np.sum(difference), 1e-6)
 
     def test_gradient_subsampling_stride(self):
         label_tensor = np.random.random((self.batch_size, 6))
-        self.layers[0] = Pooling.Pooling((3, 2), (2, 2))
+        self.layers[0] = Pooling.MaxPool2d(stride=(3, 2), kernel_size=(2, 2))
         difference = Helpers.gradient_check(
             self.layers, self.input_tensor, label_tensor)
         self.assertLessEqual(np.sum(difference), 1e-6)
 
     def test_layout_preservation(self):
-        pool = Pooling.Pooling((1, 1), (1, 1))
+        pool = Pooling.MaxPool2d(stride=(1, 1), kernel_size=(1, 1))
         input_tensor = np.array(
             range(np.prod(self.input_shape) * self.batch_size), dtype=float)
         input_tensor = input_tensor.reshape(self.batch_size, *self.input_shape)
@@ -800,7 +800,7 @@ class TestPooling(unittest.TestCase):
 
     def test_expected_output_valid_edgecase(self):
         input_shape = (1, 3, 3)
-        pool = Pooling.Pooling((2, 2), (2, 2))
+        pool = Pooling.MaxPool2d(stride=(2, 2), kernel_size=(2, 2))
         batch_size = 2
         input_tensor = np.array(
             range(np.prod(input_shape) * batch_size), dtype=float)
@@ -811,7 +811,7 @@ class TestPooling(unittest.TestCase):
 
     def test_expected_output(self):
         input_shape = (1, 4, 4)
-        pool = Pooling.Pooling((2, 2), (2, 2))
+        pool = Pooling.MaxPool2d(stride=2, kernel_size=2)
         batch_size = 2
         input_tensor = np.array(
             range(np.prod(input_shape) * batch_size), dtype=float)
@@ -981,7 +981,7 @@ class TestNeuralNetwork2(unittest.TestCase):
         cl_1_output_shape = (*input_image_shape[1:], num_kernels)
         net.append_layer(ReLU.ReLU())
 
-        pool = Pooling.Pooling((2, 2), (2, 2))
+        pool = Pooling.MaxPool2d((2, 2), (2, 2))
         pool_output_shape = (4, 4, 4)
         net.append_layer(pool)
         fcl_1_input_size = np.prod(pool_output_shape)
@@ -1167,7 +1167,7 @@ if __name__ == "__main__":
         loader = unittest.TestLoader()
         bonus_points = {}
         tests = [TestOptimizers2, TestInitializers, TestFlatten,
-                 TestConv, TestPooling, TestFullyConnected2, TestNeuralNetwork2]
+                 TestConv2d, TestMaxPool2d, TestFullyConnected2, TestNeuralNetwork2]
         percentages = [8, 5, 2, 45, 15, 2, 23]
         total_points = 0
         for t, p in zip(tests, percentages):
