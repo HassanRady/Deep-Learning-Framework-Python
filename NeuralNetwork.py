@@ -14,11 +14,9 @@ class NeuralNetwork:
     def forward(self, ):
         x, y = self.data_layer.next()   
         self.label_tensor = y 
-
         for layer in self.layers:
             output = layer.forward(x)
             x = output
-
         return self.loss_layer.forward(output, y)
     
     def test_forward(self, x):
