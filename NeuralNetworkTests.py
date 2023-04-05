@@ -975,9 +975,7 @@ class TestNeuralNetwork2(unittest.TestCase):
         net.data_layer = Helpers.DigitData(batch_size)
         net.loss_layer = Loss.CrossEntropyLoss()
 
-        cl_1 = Conv.Conv(conv_stride_shape, convolution_shape, num_kernels)
-
-        cl_1 = Conv.Conv(in_channels, convolution_shape, num_kernels)
+        cl_1 = Conv.Conv2d(in_channels=1, out_channels=num_kernels, kernel_size=(3, 3), stride=1, padding='same')
 
         net.append_layer(cl_1)
         cl_1_output_shape = (*input_image_shape[1:], num_kernels)
