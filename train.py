@@ -2,11 +2,11 @@ import copy
 
 
 class Trainer:
-    def __init__(self, optimizer, weights_initializer, bias_initializer) -> None:
+    def __init__(self, model, optimizer, weights_initializer, bias_initializer) -> None:
         self.optimizer = optimizer
         self.train_losses = []
         self.val_losses = []
-        self.model = []
+        self.model = model
         self.data_layer = None
         self.loss_layer = None
         self.label_tensor = None
@@ -17,16 +17,19 @@ class Trainer:
 
     def set_optimizer(self):
         for layer in self.model:
-            layer.optimizer = copy.deepcopy(self.optimizer)
+            if layer.trainable:
+                layer.optimizer = copy.deepcopy(self.optimizer)
+                layer.initialize(self.weights_initializer, self.bias_initializer)
 
-    def forward(self, x, y):
+
+    def forward(self, x):
         for layer in self.model:
             output = layer.forward(x)
             x = output
         return output
 
-    def backward(self, ):
-        y = self.loss_layer.backward(self.label_tensor)
+    def backward(self, y):
+        y = self.loss_layer.backward(y)
 
         for layer in reversed(self.model):
             output = layer.backward(y)
@@ -56,7 +59,7 @@ class Trainer:
     def train_step(self, x, y):
         output = self.forward(x)
         loss = self.loss_layer.forward(output, y)
-        self.backward()
+        self.backward(y)
         return loss
 
     def eval_step(self, x, y):
@@ -66,9 +69,11 @@ class Trainer:
 
     def train_epoch(self):
         loss = 0.0
-        for x, y in self.train_data:
+        for batch in self.train_data:
+            x = batch[0]
+            y = batch[1]
             loss += self.train_step(x, y)
-        epoch_loss = loss/len(self.data)
+        epoch_loss = loss/len(self.train_data)
         self.train_losses.append(epoch_loss)
         return epoch_loss
 
