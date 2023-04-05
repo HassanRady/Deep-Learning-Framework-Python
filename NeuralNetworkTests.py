@@ -13,7 +13,7 @@ import argparse
 ID = 2  # identifier for dispatcher
 
 
-class TestFullyConnected2(unittest.TestCase):
+class TestLinear(unittest.TestCase):
     def setUp(self):
         self.batch_size = 9
         self.input_size = 4
@@ -39,19 +39,19 @@ class TestFullyConnected2(unittest.TestCase):
             return weights
 
     def test_trainable(self):
-        layer = FullyConnected.FullyConnected(
+        layer = FullyConnected.Linear(
             self.input_size, self.output_size)
         self.assertTrue(layer.trainable)
 
     def test_forward_size(self):
-        layer = FullyConnected.FullyConnected(
+        layer = FullyConnected.Linear(
             self.input_size, self.output_size)
         output_tensor = layer.forward(self.input_tensor)
         self.assertEqual(output_tensor.shape[1], self.output_size)
         self.assertEqual(output_tensor.shape[0], self.batch_size)
 
     def test_backward_size(self):
-        layer = FullyConnected.FullyConnected(
+        layer = FullyConnected.Linear(
             self.input_size, self.output_size)
         output_tensor = layer.forward(self.input_tensor)
         error_tensor = layer.backward(output_tensor)
@@ -59,7 +59,7 @@ class TestFullyConnected2(unittest.TestCase):
         self.assertEqual(error_tensor.shape[0], self.batch_size)
 
     def test_update(self):
-        layer = FullyConnected.FullyConnected(
+        layer = FullyConnected.Linear(
             self.input_size, self.output_size)
         layer.optimizer = Optimizers.Sgd(1)
         for _ in range(10):
@@ -73,7 +73,7 @@ class TestFullyConnected2(unittest.TestCase):
 
     def test_update_bias(self):
         input_tensor = np.zeros([self.batch_size, self.input_size])
-        layer = FullyConnected.FullyConnected(
+        layer = FullyConnected.Linear(
             self.input_size, self.output_size)
         layer.optimizer = Optimizers.Sgd(1)
         for _ in range(10):
@@ -89,7 +89,7 @@ class TestFullyConnected2(unittest.TestCase):
         input_tensor = np.abs(np.random.random(
             (self.batch_size, self.input_size)))
         layers = list()
-        layers.append(FullyConnected.FullyConnected(
+        layers.append(FullyConnected.Linear(
             self.input_size, self.categories))
         layers.append(L2Loss())
         difference = Helpers.gradient_check(
@@ -100,7 +100,7 @@ class TestFullyConnected2(unittest.TestCase):
         input_tensor = np.abs(np.random.random(
             (self.batch_size, self.input_size)))
         layers = list()
-        layers.append(FullyConnected.FullyConnected(
+        layers.append(FullyConnected.Linear(
             self.input_size, self.categories))
         layers.append(L2Loss())
         difference = Helpers.gradient_check_weights(
@@ -109,15 +109,15 @@ class TestFullyConnected2(unittest.TestCase):
 
     def test_bias(self):
         input_tensor = np.zeros((1, 100000))
-        layer = FullyConnected.FullyConnected(100000, 1)
+        layer = FullyConnected.Linear(100000, 1)
         result = layer.forward(input_tensor)
         self.assertGreater(np.sum(result), 0)
 
     def test_initialization(self):
         input_size = 4
         categories = 10
-        layer = FullyConnected.FullyConnected(input_size, categories)
-        init = TestFullyConnected2.TestInitializer()
+        layer = FullyConnected.Linear(input_size, categories)
+        init = TestLinear.TestInitializer()
         layer.initialize(init, Initializers.Constant(0.5))
         self.assertEqual(init.fan_in, input_size)
         self.assertEqual(init.fan_out, categories)
@@ -1167,7 +1167,7 @@ if __name__ == "__main__":
         loader = unittest.TestLoader()
         bonus_points = {}
         tests = [TestOptimizers2, TestInitializers, TestFlatten,
-                 TestConv2d, TestMaxPool2d, TestFullyConnected2, TestNeuralNetwork2]
+                 TestConv2d, TestMaxPool2d, TestLinear, TestNeuralNetwork2]
         percentages = [8, 5, 2, 45, 15, 2, 23]
         total_points = 0
         for t, p in zip(tests, percentages):
