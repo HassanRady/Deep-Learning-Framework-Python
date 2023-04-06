@@ -495,7 +495,8 @@ class TestConv2d(unittest.TestCase):
             self.label_tensor[i, np.random.randint(0, self.categories)] = 1
 
     def test_trainable(self):
-        layer = Conv.Conv2d(in_channels=self.in_channels, stride=(1, 1), kernel_size=self.kernel_shape, out_channels=self.num_kernels, padding="same")
+        layer = Conv.Conv2d(in_channels=self.in_channels, stride=(
+            1, 1), kernel_size=self.kernel_shape, out_channels=self.num_kernels, padding="same")
         self.assertTrue(layer.trainable)
 
     def test_forward_size(self):
@@ -520,17 +521,21 @@ class TestConv2d(unittest.TestCase):
 
     def test_forward_size_stride2(self):
         conv = Conv.Conv((3, 3), self.kernel_shape, self.num_kernels)
-        input_tensor = np.array(range(int(np.prod(self.input_shape) * self.batch_size)), dtype=float)
+        input_tensor = np.array(
+            range(int(np.prod(self.input_shape) * self.batch_size)), dtype=float)
         input_tensor = input_tensor.reshape(self.batch_size, *self.input_shape)
         output_tensor = conv.forward(input_tensor)
-        self.assertEqual(output_tensor.shape, (self.batch_size, self.num_kernels, 4, 5))
+        self.assertEqual(output_tensor.shape,
+                         (self.batch_size, self.num_kernels, 4, 5))
 
     def test_forward_size_same(self):
         conv = Conv.Conv((3, 3), self.kernel_shape, self.num_kernels)
-        input_tensor = np.array(range(int(np.prod(self.input_shape) * self.batch_size)), dtype=float)
+        input_tensor = np.array(
+            range(int(np.prod(self.input_shape) * self.batch_size)), dtype=float)
         input_tensor = input_tensor.reshape(self.batch_size, *self.input_shape)
         output_tensor = conv.forward(input_tensor)
-        self.assertEqual(output_tensor.shape, (self.batch_size, self.num_kernels, 10, 14))
+        self.assertEqual(output_tensor.shape,
+                         (self.batch_size, self.num_kernels, 10, 14))
 
     def test_forward_size_stride_uneven_image(self):
         conv = Conv.Conv2d(in_channels=self.in_channels, out_channels=self.num_kernels +
@@ -634,7 +639,8 @@ class TestConv2d(unittest.TestCase):
                          (self.batch_size, *self.input_shape))
 
     def test_layout_preservation(self):
-        conv = Conv.Conv2d(in_channels=3, out_channels=1, kernel_size=3, stride=1, padding='same')
+        conv = Conv.Conv2d(in_channels=3, out_channels=1,
+                           kernel_size=3, stride=1, padding='same')
         conv.initialize(self.TestInitializer(), Initializers.Constant(0.0))
         input_tensor = np.array(
             range(np.prod(self.input_shape) * self.batch_size), dtype=float)
@@ -647,7 +653,8 @@ class TestConv2d(unittest.TestCase):
         np.random.seed(1337)
         input_tensor = np.abs(np.random.random((2, 3, 5, 7)))
         layers = list()
-        layers.append(Conv.Conv2d(in_channels=3, out_channels=self.hidden_channels, kernel_size=3, stride=1, padding='same'))
+        layers.append(Conv.Conv2d(in_channels=3, out_channels=self.hidden_channels,
+                      kernel_size=3, stride=1, padding='same'))
         layers.append(Flatten.Flatten())
         layers.append(L2Loss())
         difference = Helpers.gradient_check(
@@ -658,7 +665,8 @@ class TestConv2d(unittest.TestCase):
         np.random.seed(1337)
         input_tensor = np.abs(np.random.random((2, 3, 5, 7)))
         layers = list()
-        layers.append(Conv.Conv2d(in_channels=3, out_channels=self.hidden_channels, kernel_size=3, stride=1, padding='same'))
+        layers.append(Conv.Conv2d(in_channels=3, out_channels=self.hidden_channels,
+                      kernel_size=3, stride=1, padding='same'))
         layers.append(Flatten.Flatten())
         layers.append(L2Loss())
         difference = Helpers.gradient_check_weights(
@@ -670,7 +678,8 @@ class TestConv2d(unittest.TestCase):
         label_tensor = np.random.random([self.batch_size, 36])
         input_tensor = np.abs(np.random.random((2, 3, 5, 7)))
         layers = list()
-        layers.append(Conv.Conv2d(in_channels=3, out_channels=self.hidden_channels, kernel_size=3, stride=2, padding='same'))
+        layers.append(Conv.Conv2d(in_channels=3, out_channels=self.hidden_channels,
+                      kernel_size=3, stride=2, padding='same'))
         layers.append(Flatten.Flatten())
         layers.append(L2Loss())
         difference = Helpers.gradient_check_weights(
@@ -681,7 +690,8 @@ class TestConv2d(unittest.TestCase):
         np.random.seed(1337)
         input_tensor = np.abs(np.random.random((2, 3, 5, 7)))
         layers = list()
-        layers.append(Conv.Conv2d(in_channels=3, out_channels=self.hidden_channels, kernel_size=3, stride=1, padding='same'))
+        layers.append(Conv.Conv2d(in_channels=3, out_channels=self.hidden_channels,
+                      kernel_size=3, stride=1, padding='same'))
         layers.append(Flatten.Flatten())
         layers.append(L2Loss())
         difference = Helpers.gradient_check_weights(
@@ -691,11 +701,13 @@ class TestConv2d(unittest.TestCase):
 
     def test_weights_init(self):
         # simply checks whether you have not initialized everything with zeros
-        conv = Conv.Conv2d(in_channels=100, out_channels=150, kernel_size=10, stride=1, padding='same')
+        conv = Conv.Conv2d(in_channels=100, out_channels=150,
+                           kernel_size=10, stride=1, padding='same')
         self.assertGreater(np.mean(np.abs(conv.weights)), 1e-3)
 
     def test_bias_init(self):
-        conv = Conv.Conv2d(in_channels=1, out_channels=150 * 100 * 10 * 10, kernel_size=1, stride=1, padding='same')
+        conv = Conv.Conv2d(in_channels=1, out_channels=150 *
+                           100 * 10 * 10, kernel_size=1, stride=1, padding='same')
         self.assertGreater(np.mean(np.abs(conv.bias)), 1e-3)
 
     def test_gradient_stride(self):
@@ -703,7 +715,8 @@ class TestConv2d(unittest.TestCase):
         label_tensor = np.random.random([self.batch_size, 35])
         input_tensor = np.abs(np.random.random((2, 6, 5, 14)))
         layers = list()
-        layers.append(Conv.Conv2d(in_channels=6, out_channels=1, kernel_size=3, stride=(1, 2), padding='same'))
+        layers.append(Conv.Conv2d(in_channels=6, out_channels=1,
+                      kernel_size=3, stride=(1, 2), padding='same'))
         layers.append(Flatten.Flatten())
         layers.append(L2Loss())
         difference = Helpers.gradient_check(layers, input_tensor, label_tensor)
@@ -712,7 +725,8 @@ class TestConv2d(unittest.TestCase):
     def test_update(self):
         input_tensor = np.random.uniform(-1, 1,
                                          (self.batch_size, *self.input_shape))
-        conv = Conv.Conv2d(in_channels=self.in_channels, out_channels=self.num_kernels, kernel_size=self.kernel_shape, stride=(3, 2), padding='same')
+        conv = Conv.Conv2d(in_channels=self.in_channels, out_channels=self.num_kernels,
+                           kernel_size=self.kernel_shape, stride=(3, 2), padding='same')
         conv.optimizer = Optimizers.Sgd(1)
         conv.initialize(Initializers.He(), Initializers.Constant(0.1))
         # conv.weights = np.random.rand(4, 3, 5, 8)
@@ -727,10 +741,12 @@ class TestConv2d(unittest.TestCase):
                             np.sum(np.power(new_output_tensor, 2)))
 
     def test_initialization(self):
-        conv = Conv.Conv2d(in_channels=self.in_channels, out_channels=self.num_kernels, kernel_size=self.kernel_shape, stride=(1, 1), padding='same')
+        conv = Conv.Conv2d(in_channels=self.in_channels, out_channels=self.num_kernels,
+                           kernel_size=self.kernel_shape, stride=(1, 1), padding='same')
         init = TestConv2d.TestInitializer()
         conv.initialize(init, Initializers.Constant(0.1))
-        self.assertEqual(init.fan_in, self.kernel_shape[0] * self.kernel_shape[1] * self.in_channels)
+        self.assertEqual(
+            init.fan_in, self.kernel_shape[0] * self.kernel_shape[1] * self.in_channels)
         self.assertEqual(init.fan_out, np.prod(
             self.kernel_shape[:]) * self.num_kernels)
 
@@ -834,6 +850,236 @@ class TestMaxPool2d(unittest.TestCase):
         expected_result = np.array(
             [[[[5.,  7.], [13., 15.]]], [[[21., 23.], [29., 31.]]]])
         self.assertEqual(np.sum(np.abs(result - expected_result)), 0)
+
+
+class TestBatchNorm(unittest.TestCase):
+    plot = False
+    directory = 'plots/'
+
+    def setUp(self):
+        self.batch_size = 200
+        self.channels = 2
+        self.input_shape = (self.channels, 3, 3)
+        self.input_size = np.prod(self.input_shape)
+
+        np.random.seed(0)
+        self.input_tensor = np.abs(np.random.random(
+            (self.input_size, self.batch_size))).T
+        self.input_tensor_conv = np.random.uniform(
+            -1, 1, (self.batch_size, *self.input_shape))
+
+        self.categories = 5
+        self.label_tensor = np.zeros([self.categories, self.batch_size]).T
+        for i in range(self.batch_size):
+            self.label_tensor[i, np.random.randint(0, self.categories)] = 1
+
+        self.layers = list()
+        self.layers.append(None)
+        self.layers.append(Flatten.Flatten())
+        self.layers.append(FullyConnected.FullyConnected(
+            self.input_size, self.categories))
+        self.layers.append(L2Loss())
+
+        self.plot_shape = (
+            self.input_shape[1], self.input_shape[0] * np.prod(self.input_shape[2:]))
+
+    @staticmethod
+    def _channel_moments(tensor, channels):
+
+        tensor = np.transpose(tensor, (0, *range(2, tensor.ndim), 1))
+        tensor = tensor.reshape(-1, channels)
+        mean = np.mean(tensor, axis=0)
+        var = np.var(tensor, axis=0)
+        return mean, var
+
+    def test_trainable(self):
+        layer = BatchNormalization.BatchNormalization(
+            self.input_tensor.shape[-1])
+        self.assertTrue(layer.trainable)
+
+    def test_default_phase(self):
+        layer = BatchNormalization.BatchNormalization(
+            self.input_tensor.shape[-1])
+        self.assertFalse(layer.testing_phase)
+
+    def test_forward_shape(self):
+        layer = BatchNormalization.BatchNormalization(
+            self.input_tensor.shape[-1])
+        output = layer.forward(self.input_tensor)
+
+        self.assertEqual(output.shape[0], self.input_tensor.shape[0])
+        self.assertEqual(output.shape[1], self.input_tensor.shape[1])
+
+    def test_forward_shape_convolutional(self):
+        layer = BatchNormalization.BatchNormalization(self.channels)
+        output = layer.forward(self.input_tensor_conv)
+
+        self.assertEqual(output.shape, self.input_tensor_conv.shape)
+
+    def test_forward(self):
+        layer = BatchNormalization.BatchNormalization(
+            self.input_tensor.shape[-1])
+        output = layer.forward(self.input_tensor)
+        mean = np.mean(output, axis=0)
+        var = np.var(output, axis=0)
+
+        self.assertAlmostEqual(
+            np.sum(np.square(mean - np.zeros(mean.shape[0]))), 0)
+        self.assertAlmostEqual(
+            np.sum(np.square(var - np.ones(var.shape[0]))), 0)
+
+    def test_reformat_image2vec(self):
+        layer = BatchNormalization.BatchNormalization(3)
+        image_tensor = np.arange(0, 5 * 3 * 6 * 4).reshape(5, 3, 6, 4)
+        vec_tensor = layer.reformat(image_tensor)
+        # print(image_tensor==vec_tensor)
+        # print(image_tensor)
+        np.testing.assert_equal(vec_tensor.shape, (120, 3))
+        print('our', np.sum(vec_tensor, 0))
+        self.assertEqual(np.sum(vec_tensor, 1)[0], 72)
+        self.assertEqual(np.sum(vec_tensor, 0)[0], 18660)
+
+    def test_reformat_vec2image(self):
+        layer = BatchNormalization.BatchNormalization(3)
+        layer.forward(np.arange(0, 5 * 3 * 6 * 4).reshape(5, 3, 6, 4))
+        vec_tensor = np.arange(0, 5 * 3 * 6 * 4).reshape(120, 3)
+        image_tensor = layer.reformat(vec_tensor)
+        np.testing.assert_equal(image_tensor.shape, (5, 3, 6, 4))
+        self.assertEqual(np.sum(image_tensor, (0, 1, 2))[0], 15750)
+        self.assertEqual(np.sum(image_tensor, (0, 2, 3))[0], 21420)
+
+    def test_reformat(self):
+        layer = BatchNormalization.BatchNormalization(3)
+        layer.forward(np.arange(0, 5 * 3 * 6 * 4).reshape(5, 3, 6, 4))
+        image_tensor = np.arange(0, 5 * 3 * 6 * 4).reshape(5, 3, 6, 4)
+        vec_tensor = layer.reformat(image_tensor)
+        image_tensor2 = layer.reformat(vec_tensor)
+        np.testing.assert_allclose(image_tensor, image_tensor2)
+
+    def test_forward_convolutional(self):
+        layer = BatchNormalization.BatchNormalization(self.channels)
+        output = layer.forward(self.input_tensor_conv)
+        mean, var = TestBatchNorm._channel_moments(output, self.channels)
+
+        self.assertAlmostEqual(np.sum(np.square(mean)), 0)
+        self.assertAlmostEqual(np.sum(np.square(var - np.ones_like(var))), 0)
+
+    def test_forward_train_phase(self):
+        layer = BatchNormalization.BatchNormalization(
+            self.input_tensor.shape[-1])
+        layer.forward(self.input_tensor)
+
+        output = layer.forward((np.zeros_like(self.input_tensor)))
+
+        mean = np.mean(output, axis=0)
+
+        mean_input = np.mean(self.input_tensor, axis=0)
+        var_input = np.var(self.input_tensor, axis=0)
+
+        self.assertNotEqual(
+            np.sum(np.square(mean + (mean_input/np.sqrt(var_input)))), 0)
+
+    def test_forward_train_phase_convolutional(self):
+        layer = BatchNormalization.BatchNormalization(self.channels)
+        layer.forward(self.input_tensor_conv)
+
+        output = layer.forward((np.zeros_like(self.input_tensor_conv)))
+
+        mean, var = TestBatchNorm._channel_moments(output, self.channels)
+        mean_input, var_input = TestBatchNorm._channel_moments(
+            self.input_tensor_conv, self.channels)
+
+        self.assertNotEqual(
+            np.sum(np.square(mean + (mean_input/np.sqrt(var_input)))), 0)
+
+    def test_forward_test_phase(self):
+        layer = BatchNormalization.BatchNormalization(
+            self.input_tensor.shape[-1])
+        layer.forward(self.input_tensor)
+        layer.testing_phase = True
+
+        output = layer.forward((np.zeros_like(self.input_tensor)))
+
+        mean = np.mean(output, axis=0)
+        var = np.var(output, axis=0)
+
+        mean_input = np.mean(self.input_tensor, axis=0)
+        var_input = np.var(self.input_tensor, axis=0)
+
+        self.assertAlmostEqual(
+            np.sum(np.square(mean + (mean_input/np.sqrt(var_input)))), 0)
+        self.assertAlmostEqual(np.sum(np.square(var)), 0)
+
+    def test_forward_test_phase_convolutional(self):
+        layer = BatchNormalization.BatchNormalization(self.channels)
+        layer.forward(self.input_tensor_conv)
+        layer.testing_phase = True
+
+        output = layer.forward((np.zeros_like(self.input_tensor_conv)))
+
+        mean, var = TestBatchNorm._channel_moments(output, self.channels)
+        mean_input, var_input = TestBatchNorm._channel_moments(
+            self.input_tensor_conv, self.channels)
+
+        self.assertAlmostEqual(
+            np.sum(np.square(mean + (mean_input / np.sqrt(var_input)))), 0)
+        self.assertAlmostEqual(np.sum(np.square(var)), 0)
+
+    def test_gradient(self):
+        self.layers[0] = BatchNormalization.BatchNormalization(
+            self.input_tensor.shape[-1])
+        difference = Helpers.gradient_check(
+            self.layers, self.input_tensor, self.label_tensor)
+        self.assertLessEqual(np.sum(difference), 1e-4)
+
+    def test_gradient_weights(self):
+        self.layers[0] = BatchNormalization.BatchNormalization(
+            self.input_tensor.shape[-1])
+        self.layers[0].forward(self.input_tensor)
+        difference = Helpers.gradient_check_weights(
+            self.layers, self.input_tensor, self.label_tensor, False)
+        self.assertLessEqual(np.sum(difference), 1e-6)
+
+    def test_gradient_bias(self):
+        self.layers[0] = BatchNormalization.BatchNormalization(
+            self.input_tensor.shape[-1])
+        self.layers[0].forward(self.input_tensor)
+        difference = Helpers.gradient_check_weights(
+            self.layers, self.input_tensor, self.label_tensor, True)
+        self.assertLessEqual(np.sum(difference), 1e-6)
+
+    def test_gradient_convolutional(self):
+        self.layers[0] = BatchNormalization.BatchNormalization(self.channels)
+        difference = Helpers.gradient_check(
+            self.layers, self.input_tensor_conv, self.label_tensor)
+        self.assertLessEqual(np.sum(difference), 1e-3)
+
+    def test_gradient_weights_convolutional(self):
+        self.layers[0] = BatchNormalization.BatchNormalization(self.channels)
+        self.layers[0].forward(self.input_tensor_conv)
+        difference = Helpers.gradient_check_weights(
+            self.layers, self.input_tensor_conv, self.label_tensor, False)
+        self.assertLessEqual(np.sum(difference), 1e-6)
+
+    def test_gradient_bias_convolutional(self):
+        self.layers[0] = BatchNormalization.BatchNormalization(self.channels)
+        self.layers[0].forward(self.input_tensor_conv)
+        difference = Helpers.gradient_check_weights(
+            self.layers, self.input_tensor_conv, self.label_tensor, True)
+        self.assertLessEqual(np.sum(difference), 1e-6)
+
+    def test_update(self):
+        layer = BatchNormalization.BatchNormalization(
+            self.input_tensor.shape[-1])
+        layer.optimizer = Optimizers.Sgd(1)
+        for _ in range(10):
+            output_tensor = layer.forward(self.input_tensor)
+            error_tensor = np.zeros_like(self.input_tensor)
+            error_tensor -= output_tensor
+            layer.backward(error_tensor)
+            new_output_tensor = layer.forward(self.input_tensor)
+            self.assertLess(np.sum(np.power(output_tensor, 2)),
+                            np.sum(np.power(new_output_tensor, 2)))
 
 
 class TestNeuralNetwork2(unittest.TestCase):
@@ -989,7 +1235,8 @@ class TestNeuralNetwork2(unittest.TestCase):
         net.data_layer = Helpers.DigitData(batch_size)
         net.loss_layer = Loss.CrossEntropyLoss()
 
-        cl_1 = Conv.Conv2d(in_channels=1, out_channels=num_kernels, kernel_size=(3, 3), stride=1, padding='same')
+        cl_1 = Conv.Conv2d(in_channels=1, out_channels=num_kernels,
+                           kernel_size=(3, 3), stride=1, padding='same')
 
         net.append_layer(cl_1)
         cl_1_output_shape = (*input_image_shape[1:], num_kernels)
