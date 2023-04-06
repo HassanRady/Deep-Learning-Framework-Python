@@ -3,19 +3,19 @@ import numpy as np
 
 from logger import get_file_logger
 _logger = get_file_logger(__name__)
-class FullyConnected(BaseLayer):
-    def __init__(self, input_size, output_size):
+class Linear(BaseLayer):
+    def __init__(self, in_features, out_features):
         super().__init__()
         self.N = 0
         self.trainable = True
         self._optimizer = None
 
-        self.input_size = input_size
-        self.output_size = output_size
+        self.input_size = in_features
+        self.output_size = out_features
 
         self.gradient_weights = None
 
-        self.weights = np.random.rand(input_size+1, output_size)
+        self.weights = np.random.rand(in_features+1, out_features)
 
     def initialize(self, weights_initializer, bias_initializer):
         self.weights[:-1] = weights_initializer.initialize((self.input_size, self.output_size), self.input_size, self.output_size)
