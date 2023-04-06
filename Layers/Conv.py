@@ -96,9 +96,9 @@ class Conv2d(BaseLayer):
     def pad_img_same(self, imgs, dim1, dim2):
         (start_pad_dim1, end_pad_dim1) = dim1
         (start_pad_dim2, end_pad_dim2) = dim2
-        return np.pad(img, ((0, 0), (0, 0), (start_pad_dim1, end_pad_dim1), (start_pad_dim2, end_pad_dim2)), mode="constant")
+        return np.pad(imgs, ((0, 0), (0, 0), (start_pad_dim1, end_pad_dim1), (start_pad_dim2, end_pad_dim2)), mode="constant")
 
-    def remove_pad(self, img):
+    def remove_pad(self, imgs):
         (start_pad_dim1, end_pad_dim1) = self.pad_size_dim1
         (start_pad_dim2, end_pad_dim2) = self.pad_size_dim2
         if self.is_reduction_kernel:
@@ -130,7 +130,7 @@ class Conv2d(BaseLayer):
     def forward(self, input_tensor: np.array):  # input shape BATCHxCHANNELSxHIGHTxWIDTH
         self.input_tensor = input_tensor
         (self.batch_size, _, input_size_dim1, input_size_dim2) = input_tensor.shape
-        self.input_tensor_padded = self.pad_img(
+        self.input_tensor_padded = self.pad_img_same(
             input_tensor, self.pad_size_dim1, self.pad_size_dim2)
 
         self.forward_output_shape = self.get_output_shape_for_img(
