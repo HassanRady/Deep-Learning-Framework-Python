@@ -851,7 +851,6 @@ class TestMaxPool2d(unittest.TestCase):
             [[[[5.,  7.], [13., 15.]]], [[[21., 23.], [29., 31.]]]])
         self.assertEqual(np.sum(np.abs(result - expected_result)), 0)
 
-
 class TestBatchNorm(unittest.TestCase):
     plot = False
     directory = 'plots/'
@@ -876,7 +875,7 @@ class TestBatchNorm(unittest.TestCase):
         self.layers = list()
         self.layers.append(None)
         self.layers.append(Flatten.Flatten())
-        self.layers.append(FullyConnected.FullyConnected(
+        self.layers.append(FullyConnected.Linear(
             self.input_size, self.categories))
         self.layers.append(L2Loss())
 
@@ -893,17 +892,17 @@ class TestBatchNorm(unittest.TestCase):
         return mean, var
 
     def test_trainable(self):
-        layer = BatchNormalization.BatchNormalization(
+        layer = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         self.assertTrue(layer.trainable)
 
     def test_default_phase(self):
-        layer = BatchNormalization.BatchNormalization(
+        layer = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         self.assertFalse(layer.testing_phase)
 
     def test_forward_shape(self):
-        layer = BatchNormalization.BatchNormalization(
+        layer = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         output = layer.forward(self.input_tensor)
 
@@ -911,13 +910,13 @@ class TestBatchNorm(unittest.TestCase):
         self.assertEqual(output.shape[1], self.input_tensor.shape[1])
 
     def test_forward_shape_convolutional(self):
-        layer = BatchNormalization.BatchNormalization(self.channels)
+        layer = BatchNormalization.BatchNorm2d(self.channels)
         output = layer.forward(self.input_tensor_conv)
 
         self.assertEqual(output.shape, self.input_tensor_conv.shape)
 
     def test_forward(self):
-        layer = BatchNormalization.BatchNormalization(
+        layer = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         output = layer.forward(self.input_tensor)
         mean = np.mean(output, axis=0)
@@ -929,7 +928,7 @@ class TestBatchNorm(unittest.TestCase):
             np.sum(np.square(var - np.ones(var.shape[0]))), 0)
 
     def test_reformat_image2vec(self):
-        layer = BatchNormalization.BatchNormalization(3)
+        layer = BatchNormalization.BatchNorm2d(3)
         image_tensor = np.arange(0, 5 * 3 * 6 * 4).reshape(5, 3, 6, 4)
         vec_tensor = layer.reformat(image_tensor)
         # print(image_tensor==vec_tensor)
@@ -940,7 +939,7 @@ class TestBatchNorm(unittest.TestCase):
         self.assertEqual(np.sum(vec_tensor, 0)[0], 18660)
 
     def test_reformat_vec2image(self):
-        layer = BatchNormalization.BatchNormalization(3)
+        layer = BatchNormalization.BatchNorm2d(3)
         layer.forward(np.arange(0, 5 * 3 * 6 * 4).reshape(5, 3, 6, 4))
         vec_tensor = np.arange(0, 5 * 3 * 6 * 4).reshape(120, 3)
         image_tensor = layer.reformat(vec_tensor)
@@ -949,7 +948,7 @@ class TestBatchNorm(unittest.TestCase):
         self.assertEqual(np.sum(image_tensor, (0, 2, 3))[0], 21420)
 
     def test_reformat(self):
-        layer = BatchNormalization.BatchNormalization(3)
+        layer = BatchNormalization.BatchNorm2d(3)
         layer.forward(np.arange(0, 5 * 3 * 6 * 4).reshape(5, 3, 6, 4))
         image_tensor = np.arange(0, 5 * 3 * 6 * 4).reshape(5, 3, 6, 4)
         vec_tensor = layer.reformat(image_tensor)
@@ -957,7 +956,8 @@ class TestBatchNorm(unittest.TestCase):
         np.testing.assert_allclose(image_tensor, image_tensor2)
 
     def test_forward_convolutional(self):
-        layer = BatchNormalization.BatchNormalization(self.channels)
+        from Layers import BatchNormalization
+        layer = BatchNormalization.BatchNorm2d(self.channels)
         output = layer.forward(self.input_tensor_conv)
         mean, var = TestBatchNorm._channel_moments(output, self.channels)
 
@@ -965,7 +965,7 @@ class TestBatchNorm(unittest.TestCase):
         self.assertAlmostEqual(np.sum(np.square(var - np.ones_like(var))), 0)
 
     def test_forward_train_phase(self):
-        layer = BatchNormalization.BatchNormalization(
+        layer = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         layer.forward(self.input_tensor)
 
@@ -980,7 +980,7 @@ class TestBatchNorm(unittest.TestCase):
             np.sum(np.square(mean + (mean_input/np.sqrt(var_input)))), 0)
 
     def test_forward_train_phase_convolutional(self):
-        layer = BatchNormalization.BatchNormalization(self.channels)
+        layer = BatchNormalization.BatchNorm2d(self.channels)
         layer.forward(self.input_tensor_conv)
 
         output = layer.forward((np.zeros_like(self.input_tensor_conv)))
@@ -993,7 +993,7 @@ class TestBatchNorm(unittest.TestCase):
             np.sum(np.square(mean + (mean_input/np.sqrt(var_input)))), 0)
 
     def test_forward_test_phase(self):
-        layer = BatchNormalization.BatchNormalization(
+        layer = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         layer.forward(self.input_tensor)
         layer.testing_phase = True
@@ -1011,7 +1011,7 @@ class TestBatchNorm(unittest.TestCase):
         self.assertAlmostEqual(np.sum(np.square(var)), 0)
 
     def test_forward_test_phase_convolutional(self):
-        layer = BatchNormalization.BatchNormalization(self.channels)
+        layer = BatchNormalization.BatchNorm2d(self.channels)
         layer.forward(self.input_tensor_conv)
         layer.testing_phase = True
 
@@ -1026,14 +1026,14 @@ class TestBatchNorm(unittest.TestCase):
         self.assertAlmostEqual(np.sum(np.square(var)), 0)
 
     def test_gradient(self):
-        self.layers[0] = BatchNormalization.BatchNormalization(
+        self.layers[0] = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         difference = Helpers.gradient_check(
             self.layers, self.input_tensor, self.label_tensor)
         self.assertLessEqual(np.sum(difference), 1e-4)
 
     def test_gradient_weights(self):
-        self.layers[0] = BatchNormalization.BatchNormalization(
+        self.layers[0] = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         self.layers[0].forward(self.input_tensor)
         difference = Helpers.gradient_check_weights(
@@ -1041,7 +1041,7 @@ class TestBatchNorm(unittest.TestCase):
         self.assertLessEqual(np.sum(difference), 1e-6)
 
     def test_gradient_bias(self):
-        self.layers[0] = BatchNormalization.BatchNormalization(
+        self.layers[0] = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         self.layers[0].forward(self.input_tensor)
         difference = Helpers.gradient_check_weights(
@@ -1049,27 +1049,27 @@ class TestBatchNorm(unittest.TestCase):
         self.assertLessEqual(np.sum(difference), 1e-6)
 
     def test_gradient_convolutional(self):
-        self.layers[0] = BatchNormalization.BatchNormalization(self.channels)
+        self.layers[0] = BatchNormalization.BatchNorm2d(self.channels)
         difference = Helpers.gradient_check(
             self.layers, self.input_tensor_conv, self.label_tensor)
         self.assertLessEqual(np.sum(difference), 1e-3)
 
     def test_gradient_weights_convolutional(self):
-        self.layers[0] = BatchNormalization.BatchNormalization(self.channels)
+        self.layers[0] = BatchNormalization.BatchNorm2d(self.channels)
         self.layers[0].forward(self.input_tensor_conv)
         difference = Helpers.gradient_check_weights(
             self.layers, self.input_tensor_conv, self.label_tensor, False)
         self.assertLessEqual(np.sum(difference), 1e-6)
 
     def test_gradient_bias_convolutional(self):
-        self.layers[0] = BatchNormalization.BatchNormalization(self.channels)
+        self.layers[0] = BatchNormalization.BatchNorm2d(self.channels)
         self.layers[0].forward(self.input_tensor_conv)
         difference = Helpers.gradient_check_weights(
             self.layers, self.input_tensor_conv, self.label_tensor, True)
         self.assertLessEqual(np.sum(difference), 1e-6)
 
     def test_update(self):
-        layer = BatchNormalization.BatchNormalization(
+        layer = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         layer.optimizer = Optimizers.Sgd(1)
         for _ in range(10):
@@ -1428,7 +1428,7 @@ if __name__ == "__main__":
         loader = unittest.TestLoader()
         bonus_points = {}
         tests = [TestOptimizers2, TestInitializers, TestFlatten,
-                 TestConv2d, TestMaxPool2d, TestLinear, TestNeuralNetwork2]
+                 TestConv2d, TestMaxPool2d, TestLinear, TestNeuralNetwork2, TestBatchNorm]
         percentages = [8, 5, 2, 45, 15, 2, 23]
         total_points = 0
         for t, p in zip(tests, percentages):
