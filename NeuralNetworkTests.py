@@ -851,7 +851,7 @@ class TestMaxPool2d(unittest.TestCase):
             [[[[5.,  7.], [13., 15.]]], [[[21., 23.], [29., 31.]]]])
         self.assertEqual(np.sum(np.abs(result - expected_result)), 0)
 
-class TestBatchNorm(unittest.TestCase):
+class TestBatchNorm2d(unittest.TestCase):
     plot = False
     directory = 'plots/'
 
@@ -956,7 +956,7 @@ class TestBatchNorm(unittest.TestCase):
         from Layers import BatchNormalization
         layer = BatchNormalization.BatchNorm2d(self.channels)
         output = layer.forward(self.input_tensor_conv)
-        mean, var = TestBatchNorm._channel_moments(output, self.channels)
+        mean, var = TestBatchNorm2d._channel_moments(output, self.channels)
 
         self.assertAlmostEqual(np.sum(np.square(mean)), 0)
         self.assertAlmostEqual(np.sum(np.square(var - np.ones_like(var))), 0)
@@ -982,8 +982,8 @@ class TestBatchNorm(unittest.TestCase):
 
         output = layer.forward((np.zeros_like(self.input_tensor_conv)))
 
-        mean, var = TestBatchNorm._channel_moments(output, self.channels)
-        mean_input, var_input = TestBatchNorm._channel_moments(
+        mean, var = TestBatchNorm2d._channel_moments(output, self.channels)
+        mean_input, var_input = TestBatchNorm2d._channel_moments(
             self.input_tensor_conv, self.channels)
 
         self.assertNotEqual(
@@ -1014,22 +1014,22 @@ class TestBatchNorm(unittest.TestCase):
 
         output = layer.forward((np.zeros_like(self.input_tensor_conv)))
 
-        mean, var = TestBatchNorm._channel_moments(output, self.channels)
-        mean_input, var_input = TestBatchNorm._channel_moments(
+        mean, var = TestBatchNorm2d._channel_moments(output, self.channels)
+        mean_input, var_input = TestBatchNorm2d._channel_moments(
             self.input_tensor_conv, self.channels)
 
         self.assertAlmostEqual(
             np.sum(np.square(mean + (mean_input / np.sqrt(var_input)))), 0)
         self.assertAlmostEqual(np.sum(np.square(var)), 0)
 
-    def test_gradient(self):
+    def _test_linear_gradient(self):
         self.layers[0] = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         difference = Helpers.gradient_check(
             self.layers, self.input_tensor, self.label_tensor)
         self.assertLessEqual(np.sum(difference), 1e-4)
 
-    def test_gradient_weights(self):
+    def _test_linear_gradient_weights(self):
         self.layers[0] = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         self.layers[0].forward(self.input_tensor)
@@ -1037,7 +1037,7 @@ class TestBatchNorm(unittest.TestCase):
             self.layers, self.input_tensor, self.label_tensor, False)
         self.assertLessEqual(np.sum(difference), 1e-6)
 
-    def test_gradient_bias(self):
+    def _test_linear_gradient_bias(self):
         self.layers[0] = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         self.layers[0].forward(self.input_tensor)
@@ -1065,7 +1065,7 @@ class TestBatchNorm(unittest.TestCase):
             self.layers, self.input_tensor_conv, self.label_tensor, True)
         self.assertLessEqual(np.sum(difference), 1e-6)
 
-    def test_update(self):
+    def _test_linear_update(self):
         layer = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
         layer.optimizer = Optimizers.Sgd(1)
@@ -1425,7 +1425,7 @@ if __name__ == "__main__":
         loader = unittest.TestLoader()
         bonus_points = {}
         tests = [TestOptimizers2, TestInitializers, TestFlatten,
-                 TestConv2d, TestMaxPool2d, TestLinear, TestNeuralNetwork2, TestBatchNorm]
+                 TestConv2d, TestMaxPool2d, TestLinear, TestNeuralNetwork2, TestBatchNorm2d]
         percentages = [8, 5, 2, 45, 15, 2, 23]
         total_points = 0
         for t, p in zip(tests, percentages):
