@@ -17,6 +17,7 @@ class MaxPool2d(BaseLayer):
     def __init__(self, kernel_size, stride):
         super().__init__()
         self.trainable = False
+        self.initializable = False
 
         if isinstance(kernel_size, int):
             kernel_size = self.to_tuple(kernel_size)

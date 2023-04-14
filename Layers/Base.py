@@ -3,7 +3,7 @@ import numpy as np
 class BaseLayer:
     def __init__(self, ):
         self.trainable = False
-        self.weights = None
+        self.initializable = False
 
 
 if __name__ == "__main__":

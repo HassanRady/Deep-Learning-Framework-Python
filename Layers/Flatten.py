@@ -5,6 +5,7 @@ class Flatten(BaseLayer):
     def __init__(self) -> None:
         super().__init__()
         self.trainable = False
+        self.initializable = False
 
     def forward(self, input_tensor: np.array):
         self.input_tensor = input_tensor

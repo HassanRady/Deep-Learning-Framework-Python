@@ -8,6 +8,7 @@ class Linear(BaseLayer):
         super().__init__()
         self.N = 0
         self.trainable = True
+        self.initializable = True
         self._optimizer = None
 
         self.input_size = in_features

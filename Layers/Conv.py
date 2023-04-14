@@ -17,6 +17,7 @@ class Conv2d(BaseLayer):
     def __init__(self, in_channels, out_channels, kernel_size, stride, padding):
         super().__init__()
         self.trainable = True
+        self.initializable = True
         self._optimizer = None
 
         if isinstance(stride, int):
