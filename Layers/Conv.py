@@ -47,6 +47,8 @@ class Conv2d(BaseLayer):
         self.bias_initializer = bias_initializer
         self.bias = np.random.randn(self.out_channels, 1)
 
+        self.initialize()
+
     def to_tuple(self, int_value):
         return (int_value, int_value)
 
