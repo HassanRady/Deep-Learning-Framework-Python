@@ -1,9 +1,10 @@
 import copy
 
 class Trainer:
-    def __init__(self, x, y) -> None:
+    def __init__(self, x, y, batch_size) -> None:
         self.x = x
         self.y = y
+        self.batch_size = batch_size
 
     def train_step(self, x, y):
         output = self.forward(x)
