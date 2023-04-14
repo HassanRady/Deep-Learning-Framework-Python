@@ -9,7 +9,7 @@ from Layers.SoftMax import SoftMax
 from Optimization.Loss import CrossEntropyLoss
 from Optimization.Optimizers import Adam, SgdWithMomentum, Sgd
 
-from train import Trainer
+from Train import Trainer
 from Layers.Helpers import DigitData
 
 from sklearn.model_selection import train_test_split
