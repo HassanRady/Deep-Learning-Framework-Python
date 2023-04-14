@@ -42,22 +42,22 @@ class BatchNorm2d(BaseLayer):
                                                                            self.input_tensor.shape[3])
 
     def normalize_train(self, tensor):
-        batch_mean = np.mean(tensor, axis=0)
-        batch_variance = np.var(tensor, axis=0)
+        self.batch_mean = np.mean(tensor, axis=0)
+        self.batch_variance = np.var(tensor, axis=0)
 
         input_tensor_normalized = (
-            tensor - batch_mean)/np.sqrt(batch_variance + self.eps)
+            tensor - self.batch_mean)/np.sqrt(self.batch_variance + self.eps)
 
         input_normalized = self.gamma * input_tensor_normalized + self.beta
 
         if np.all(self.mean == 0):
-            self.mean = batch_mean
-            self.variance = batch_variance
+            self.mean = self.batch_mean
+            self.variance = self.batch_variance
         else:
             self.mean = self.momentum * self.mean + \
-                (1 - self.momentum) * batch_mean
+                (1 - self.momentum) * self.batch_mean
             self.variance = self.momentum * self.variance + \
-                (1 - self.momentum) * batch_variance
+                (1 - self.momentum) * self.batch_variance
         return input_normalized
 
     def normalize_test(self, tensor):
@@ -68,21 +68,36 @@ class BatchNorm2d(BaseLayer):
 
     def forward(self, input_tensor):  # input shape BATCHxCHANNELSxHEIGHTxWIDTH
         self.input_tensor = input_tensor
+        self.batch_size = input_tensor.shape[0]
 
         input_tensor_reshaped = self.reshape_tensor_for_input(input_tensor)
 
         if not self.test_phase:
-            input_normalized = self.normalize_train(input_tensor_reshaped)
+            self.input_normalized = self.normalize_train(input_tensor_reshaped)
         else:
-            input_normalized = self.normalize_test(input_tensor_reshaped)
+            self.input_normalized = self.normalize_test(input_tensor_reshaped)
 
         self.forward_output_reshaped = self.reshape_tensor_for_output(
-            input_normalized)
+            self.input_normalized)
         return self.forward_output_reshaped
+    
+    def backward(self, error_tensor):
+        error_tensor = self.reshape_tensor_for_input(error_tensor)
+
+        der_gamma = np.sum(error_tensor * self.input_normalized, axis=0)
+        der_beta = error_tensor.sum(axis=0)
+        der_input_normalized = error_tensor * self.gamma
+
+        der_input_tensor = 1/self.batch_size / np.sqrt(self.batch_variance) * (self.batch_size * der_input_normalized - 
+                      der_input_normalized.sum(axis=0) - 
+                      self.input_normalized * (der_input_normalized * self.input_normalized).sum(axis=0))    
+
+        der_input_normalized = self.reshape_tensor_for_output(der_input_normalized )
+        return der_input_normalized
 
 
 if __name__ == "__main__":
     import NeuralNetworkTests
 
     NeuralNetworkTests.TestBatchNorm().setUp()
-    NeuralNetworkTests.TestBatchNorm().test_forward_convolutional()
+    NeuralNetworkTests.TestBatchNorm()
