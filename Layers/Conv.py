@@ -8,13 +8,14 @@ sys.path.insert(0, parentdir)
 
 import numpy as np
 from Layers.Base import BaseLayer
+from Layers.Initializers import He, Constant
 
 from logger import get_file_logger
 _logger = get_file_logger(__name__)
 
 
 class Conv2d(BaseLayer):
-    def __init__(self, in_channels, out_channels, kernel_size, stride, padding):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, padding, weights_initializer=He(), bias_initializer=Constant(0)):
         super().__init__()
         self.trainable = True
         self.initializable = True
@@ -38,9 +39,12 @@ class Conv2d(BaseLayer):
 
         self.check_padding_type(padding)
 
+        self.weights_initializer = weights_initializer
         self.weight_shape = (
             self.out_channels, self.in_channels, *self.kernel_size)
         self.weights = np.random.randn(*self.weight_shape)
+
+        self.bias_initializer = bias_initializer
         self.bias = np.random.randn(self.out_channels, 1)
 
     def to_tuple(self, int_value):
@@ -57,10 +61,10 @@ class Conv2d(BaseLayer):
             self.pad_size_dim1 = (padding, padding)
             self.pad_size_dim2 = (padding, padding)
 
-    def initialize(self, weights_initializer, bias_initializer):
-        self.weights = weights_initializer.initialize(self.weight_shape, self.in_channels * self.kernel_size_dim1 * self.kernel_size_dim2,
+    def initialize(self):
+        self.weights = self.weights_initializer.initialize(self.weight_shape, self.in_channels * self.kernel_size_dim1 * self.kernel_size_dim2,
                                                       self.kernel_size_dim1 * self.kernel_size_dim2 * self.out_channels)
-        self.bias = bias_initializer.initialize(
+        self.bias = self.bias_initializer.initialize(
             self.out_channels, self.in_channels, self.out_channels)
 
     @property
