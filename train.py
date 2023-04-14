@@ -18,6 +18,7 @@ class Trainer:
         for layer in self.model:
             if layer.trainable:
                 layer.optimizer = copy.deepcopy(self.optimizer)
+            if layer.initializable:
                 layer.initialize(*self.initializer)
 
     def forward(self, x):
@@ -67,7 +68,7 @@ class Trainer:
 
     def train_epoch(self):
         loss = 0.0
-        for batch in self.train_data:
+        for batch in self.batcher():
             x = batch[0]
             y = batch[1]
             loss += self.train_step(x, y)
@@ -81,3 +82,8 @@ class Trainer:
             loss += self.eval_step(x, y)
         epoch_loss = loss/len(self.data)
         return epoch_loss
+
+
+    def batcher(self, ):
+        for i in range(len(self.x)):
+            yield self.x[i:i+self.batch_size], self.y[i:i+self.batch_size]
