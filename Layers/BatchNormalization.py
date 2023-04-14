@@ -30,6 +30,30 @@ class BatchNorm2d(BaseLayer):
         self.test_phase = False
         self.input_tensor = None
 
+    @property
+    def optimizer(self):
+        return self._optimizer
+
+    @optimizer.setter
+    def optimizer(self, v):
+        self._optimizer = v
+
+    @property
+    def gradient_weights(self):
+        return self._gradient_weights
+
+    @gradient_weights.setter
+    def gradient_weights(self, value):
+        self._gradient_weights = value
+
+    @property
+    def gradient_bias(self):
+        return self._gradient_bias
+
+    @gradient_bias.setter
+    def gradient_bias(self, value):
+        self._gradient_bias = value
+
     def reshape_tensor_for_input(self, tensor):
         return np.concatenate(tensor.reshape(tensor.shape[0], tensor.shape[1], tensor.shape[2] * tensor.shape[3]), axis=1).T
 
@@ -44,11 +68,12 @@ class BatchNorm2d(BaseLayer):
     def normalize_train(self, tensor):
         self.batch_mean = np.mean(tensor, axis=0)
         self.batch_variance = np.var(tensor, axis=0)
+        self.batch_std = np.sqrt(self.batch_variance + self.eps)
 
-        input_tensor_normalized = (
-            tensor - self.batch_mean)/np.sqrt(self.batch_variance + self.eps)
+        self.input_tensor_normalized = (
+            tensor - self.batch_mean)/self.batch_std
 
-        input_normalized = self.gamma * input_tensor_normalized + self.beta
+        input_batch_normalized = self.gamma * self.input_tensor_normalized + self.beta
 
         if np.all(self.mean == 0):
             self.mean = self.batch_mean
@@ -58,7 +83,7 @@ class BatchNorm2d(BaseLayer):
                 (1 - self.momentum) * self.batch_mean
             self.variance = self.momentum * self.variance + \
                 (1 - self.momentum) * self.batch_variance
-        return input_normalized
+        return input_batch_normalized
 
     def normalize_test(self, tensor):
         input_tensor_normalized = (
@@ -80,20 +105,25 @@ class BatchNorm2d(BaseLayer):
         self.forward_output_reshaped = self.reshape_tensor_for_output(
             self.input_normalized)
         return self.forward_output_reshaped
-    
+
     def backward(self, error_tensor):
         error_tensor = self.reshape_tensor_for_input(error_tensor)
 
-        der_gamma = np.sum(error_tensor * self.input_normalized, axis=0)
-        der_beta = error_tensor.sum(axis=0)
-        der_input_normalized = error_tensor * self.gamma
+        gradient_gamma = np.sum(
+            error_tensor * self.input_tensor_normalized, axis=0)
+        gradient_beta = error_tensor.sum(axis=0)
+        gradient_input_normalized = error_tensor * self.gamma
 
-        der_input_tensor = 1/self.batch_size / np.sqrt(self.batch_variance) * (self.batch_size * der_input_normalized - 
-                      der_input_normalized.sum(axis=0) - 
-                      self.input_normalized * (der_input_normalized * self.input_normalized).sum(axis=0))    
+        der_input_tensor = 1./(self.batch_size * np.sqrt(self.variance + self.eps)) * (self.batch_size * gradient_input_normalized -
+                                                                                       gradient_input_normalized.sum(axis=0) -
+                                                                                       self.input_tensor_normalized * np.sum(gradient_input_normalized * self.input_tensor_normalized, axis=0))
 
-        der_input_normalized = self.reshape_tensor_for_output(der_input_normalized )
-        return der_input_normalized
+        if self.optimizer:
+            self.gamma = self.optimizer.calculate_update(self.gamma, gradient_gamma)
+            self.beta = self.optimizer.calculate_update(self.beta, gradient_beta)
+        
+        der_input_tensor = self.reshape_tensor_for_output(der_input_tensor)
+        return der_input_tensor
 
 
 if __name__ == "__main__":
