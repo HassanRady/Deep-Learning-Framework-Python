@@ -10,8 +10,7 @@ class Trainer:
         self.data_layer = None
         self.loss_layer = None
         self.label_tensor = None
-        self.weights_initializer = weights_initializer
-        self.bias_initializer = bias_initializer
+        self.initializer = (weights_initializer, bias_initializer)
 
         self.set_optimizer()
 
@@ -19,8 +18,7 @@ class Trainer:
         for layer in self.model:
             if layer.trainable:
                 layer.optimizer = copy.deepcopy(self.optimizer)
-                layer.initialize(self.weights_initializer, self.bias_initializer)
-
+                layer.initialize(*self.initializer)
 
     def forward(self, x):
         for layer in self.model:
@@ -38,7 +36,7 @@ class Trainer:
     def append_layer(self, layer):
         if layer.trainable:
             layer.optimizer = copy.deepcopy(self.optimizer)
-            layer.initialize(self.weights_initializer, self.bias_initializer)
+            layer.initialize(*self.initializer)
         self.model.append(layer)
 
     # def fit(self, epoch, train_data, val_data):
