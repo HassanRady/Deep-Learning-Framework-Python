@@ -1258,7 +1258,7 @@ class TestNeuralNetwork2(unittest.TestCase):
 
         net.append_layer(SoftMax.SoftMax())
 
-        net.train(20)
+        net.train(200)
 
         if TestNeuralNetwork2.plot:
             description = 'on_digit_data'
