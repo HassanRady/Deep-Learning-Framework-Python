@@ -1,4 +1,16 @@
+import os
+import sys
+import inspect
+currentdir = os.path.dirname(os.path.abspath(
+    inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
+
 import numpy as np
+
+from logger import get_file_logger
+
+_logger = get_file_logger(__name__)
 
 class Sgd:
     def __init__(self, learning_rate: float) -> None:
@@ -20,10 +32,11 @@ class SgdWithMomentum:
         return weight_tensor
 
 class Adam:
-    def __init__(self, learning_rate, mu, rho) -> None:
+    def __init__(self, learning_rate=1e-03, mu=0.9, rho=0.9, epsilon=1e-07) -> None:
         self.learning_rate = learning_rate
         self.mu = mu
         self.rho = rho
+        self.epsilon = epsilon
         self.v = 0
         self.r = 0
         self.k = 0
@@ -38,5 +51,5 @@ class Adam:
         self.r_hat = (self.r)/(1 - self.rho**self.k)
 
 
-        weight_tensor = weight_tensor - self.learning_rate *  (self.v_hat)/( np.sqrt(self.r_hat) + np.finfo(float).eps) 
+        weight_tensor = weight_tensor - self.learning_rate *  (self.v_hat)/( np.sqrt(self.r_hat) + self.epsilon) 
         return weight_tensor
