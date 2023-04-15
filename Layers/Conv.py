@@ -15,7 +15,7 @@ _logger = get_file_logger(__name__)
 
 
 class Conv2d(BaseLayer):
-    def __init__(self, in_channels, out_channels, kernel_size, stride, padding, weights_initializer=He(), bias_initializer=Constant(0)):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, padding, weights_initializer=He(), bias_initializer=Constant(0.1)):
         super().__init__()
         self.trainable = True
         self.initializable = True
