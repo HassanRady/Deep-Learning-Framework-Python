@@ -1,10 +1,11 @@
 from Layers.Base import BaseLayer
+from Layers.Initializers import He, Constant
 import numpy as np
 
 from logger import get_file_logger
 _logger = get_file_logger(__name__)
 class Linear(BaseLayer):
-    def __init__(self, in_features, out_features):
+    def __init__(self, in_features, out_features, weights_initializer=He(), bias_initializer=Constant(0.1)):
         super().__init__()
         self.N = 0
         self.trainable = True
@@ -17,10 +18,14 @@ class Linear(BaseLayer):
         self.gradient_weights = None
 
         self.weights = np.random.rand(in_features+1, out_features)
+        self.weights_initializer = weights_initializer
+        self.bias_initializer = bias_initializer
 
-    def initialize(self, weights_initializer, bias_initializer):
-        self.weights[:-1] = weights_initializer.initialize((self.input_size, self.output_size), self.input_size, self.output_size)
-        self.weights[1:] = bias_initializer.initialize( (self.input_size, self.output_size), 1, self.output_size)
+        self.initialize()
+
+    def initialize(self):
+        self.weights[:-1] = self.weights_initializer.initialize((self.input_size, self.output_size), self.input_size, self.output_size)
+        self.weights[1:] = self.bias_initializer.initialize( (self.input_size, self.output_size), 1, self.output_size)
 
     @property
     def optimizer(self):
