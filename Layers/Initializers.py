@@ -36,6 +36,4 @@ class He:
         pass
     
     def initialize(self, weights_shape, fan_in, fan_out):
-        sigma = np.sqrt( (2) / (fan_in) )
-        weights = np.random.normal(0, sigma, size=weights_shape)
-        return weights
+        return np.random.normal(0,np.sqrt((2/(fan_in))),size=(weights_shape))
