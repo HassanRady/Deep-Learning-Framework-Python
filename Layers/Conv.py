@@ -1,3 +1,7 @@
+from logger import get_file_logger
+from Layers.Initializers import He, Constant
+from Layers.Base import BaseLayer
+import numpy as np
 import os
 import sys
 import inspect
@@ -6,11 +10,7 @@ currentdir = os.path.dirname(os.path.abspath(
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-import numpy as np
-from Layers.Base import BaseLayer
-from Layers.Initializers import He, Constant
 
-from logger import get_file_logger
 _logger = get_file_logger(__name__)
 
 
@@ -42,10 +42,8 @@ class Conv2d(BaseLayer):
         self.weights_initializer = weights_initializer
         self.weight_shape = (
             self.out_channels, self.in_channels, *self.kernel_size)
-        self.weights = np.random.randn(*self.weight_shape)
 
         self.bias_initializer = bias_initializer
-        self.bias = np.random.randn(self.out_channels, 1)
 
         self.initialize()
 
@@ -63,11 +61,11 @@ class Conv2d(BaseLayer):
             self.pad_size_dim1 = (padding, padding)
             self.pad_size_dim2 = (padding, padding)
 
-    def initialize(self):
+    def initialize(self, x=None, y=None):
         self.weights = self.weights_initializer.initialize(self.weight_shape, self.in_channels * self.kernel_size_dim1 * self.kernel_size_dim2,
-                                                      self.kernel_size_dim1 * self.kernel_size_dim2 * self.out_channels)
+                                                           self.kernel_size_dim1 * self.kernel_size_dim2 * self.out_channels)
         self.bias = self.bias_initializer.initialize(
-            self.out_channels, self.in_channels, self.out_channels)
+            (self.out_channels, 1), self.out_channels, 1)
 
     @property
     def optimizer(self):
@@ -153,7 +151,6 @@ class Conv2d(BaseLayer):
                 for slice, i, j in self.generate_slice(one_sample_padded, output_dim1, output_dim2):
                     self.forward_output[n, out_channel, i,
                                         j] = self.convolve(slice, kernel, bias)
-
         return self.forward_output
 
     def backward(self, error_tensor):
@@ -161,14 +158,14 @@ class Conv2d(BaseLayer):
 
         output = np.zeros_like(self.input_tensor)
         gradient_input = np.zeros_like(self.input_tensor_padded)
-        self._gradient_bias = np.zeros_like(self.bias)
+        self._gradient_bias = np.zeros((self.out_channels, 1, 1, 1))
         self._gradient_weights = np.zeros_like(self.weights)
 
         for n in range(self.batch_size):
             one_sample_padded = self.input_tensor_padded[n]
 
-            for out_channel in range(self.out_channels):
-                for slice, i, j in self.generate_slice(one_sample_padded, output_dim1, output_dim2):
+            for slice, i, j in self.generate_slice(one_sample_padded, output_dim1, output_dim2):
+                for out_channel in range(self.out_channels):
                     start_dim1 = i * self.stride_size_dim1
                     end_dim1 = i * self.stride_size_dim1 + self.kernel_size_dim1
                     start_dim2 = j * self.stride_size_dim2
