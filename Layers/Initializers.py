@@ -5,8 +5,7 @@ class Constant:
         self.value = value
     
     def initialize(self, weights_shape, fan_in, fan_out):
-        weights = np.zeros(weights_shape) + self.value
-        return weights
+        return np.full((fan_in,fan_out),self.value)
 
 
 
