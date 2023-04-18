@@ -25,7 +25,7 @@ class Linear(BaseLayer):
 
     def initialize(self):
         self.weights[:-1] = self.weights_initializer.initialize((self.input_size, self.output_size), self.input_size, self.output_size)
-        self.weights[1:] = self.bias_initializer.initialize( (self.input_size, self.output_size), 1, self.output_size)
+        self.weights[-1:] = self.bias_initializer.initialize( (self.input_size, self.output_size), 1, self.output_size)
 
     @property
     def optimizer(self):
