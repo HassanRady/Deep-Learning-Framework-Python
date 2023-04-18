@@ -116,11 +116,10 @@ class TestLinear(unittest.TestCase):
     def test_initialization(self):
         input_size = 4
         categories = 10
-        layer = FullyConnected.Linear(input_size, categories)
+        layer = FullyConnected.Linear(input_size, categories, TestLinear.TestInitializer(), Initializers.Constant(0.5))
         init = TestLinear.TestInitializer()
-        layer.initialize(init, Initializers.Constant(0.5))
-        self.assertEqual(init.fan_in, input_size)
-        self.assertEqual(init.fan_out, categories)
+        # self.assertEqual(layer.weights_initializer, input_size)
+        # self.assertEqual(init.fan_out, categories)
         if layer.weights.shape[0] > layer.weights.shape[1]:
             self.assertLessEqual(np.sum(layer.weights) - 17, 1e-5)
         else:
@@ -520,7 +519,7 @@ class TestConv2d(unittest.TestCase):
                          (self.batch_size, self.num_kernels, 4, 7))
 
     def test_forward_size_stride2(self):
-        conv = Conv.Conv((3, 3), self.kernel_shape, self.num_kernels)
+        conv = Conv.Conv2d(in_channels=self.in_channels, stride=(3, 3), kernel_size=self.kernel_shape, out_channels=self.num_kernels, padding="same")
         input_tensor = np.array(
             range(int(np.prod(self.input_shape) * self.batch_size)), dtype=float)
         input_tensor = input_tensor.reshape(self.batch_size, *self.input_shape)
@@ -529,7 +528,7 @@ class TestConv2d(unittest.TestCase):
                          (self.batch_size, self.num_kernels, 4, 5))
 
     def test_forward_size_same(self):
-        conv = Conv.Conv((3, 3), self.kernel_shape, self.num_kernels)
+        conv = Conv.Conv2d(stride=(1, 1), kernel_size=self.kernel_shape, out_channels=self.num_kernels, in_channels=self.in_channels, padding="same")
         input_tensor = np.array(
             range(int(np.prod(self.input_shape) * self.batch_size)), dtype=float)
         input_tensor = input_tensor.reshape(self.batch_size, *self.input_shape)
@@ -640,8 +639,8 @@ class TestConv2d(unittest.TestCase):
 
     def test_layout_preservation(self):
         conv = Conv.Conv2d(in_channels=3, out_channels=1,
-                           kernel_size=3, stride=1, padding='same')
-        conv.initialize(self.TestInitializer(), Initializers.Constant(0.0))
+                           kernel_size=3, stride=1, padding='same', weights_initializer=self.TestInitializer(), bias_initializer=Initializers.Constant(0.0))
+        # conv.initialize(self.TestInitializer(), Initializers.Constant(0.0))
         input_tensor = np.array(
             range(np.prod(self.input_shape) * self.batch_size), dtype=float)
         input_tensor = input_tensor.reshape(self.batch_size, *self.input_shape)
@@ -742,11 +741,12 @@ class TestConv2d(unittest.TestCase):
 
     def test_initialization(self):
         conv = Conv.Conv2d(in_channels=self.in_channels, out_channels=self.num_kernels,
-                           kernel_size=self.kernel_shape, stride=(1, 1), padding='same')
+                           kernel_size=self.kernel_shape, stride=(1, 1), padding='same', weights_initializer=TestConv2d.TestInitializer())
         init = TestConv2d.TestInitializer()
-        conv.initialize(init, Initializers.Constant(0.1))
+        # conv.initialize(init, Initializers.Constant(0.1))
         self.assertEqual(
             init.fan_in, self.kernel_shape[0] * self.kernel_shape[1] * self.in_channels)
+        
         self.assertEqual(init.fan_out, np.prod(
             self.kernel_shape[:]) * self.num_kernels)
 
@@ -850,6 +850,7 @@ class TestMaxPool2d(unittest.TestCase):
         expected_result = np.array(
             [[[[5.,  7.], [13., 15.]]], [[[21., 23.], [29., 31.]]]])
         self.assertEqual(np.sum(np.abs(result - expected_result)), 0)
+
 
 class TestBatchNorm2d(unittest.TestCase):
     plot = False
@@ -1078,6 +1079,7 @@ class TestBatchNorm2d(unittest.TestCase):
             self.assertLess(np.sum(np.power(output_tensor, 2)),
                             np.sum(np.power(new_output_tensor, 2)))
 
+
 class TestDropout(unittest.TestCase):
     def setUp(self):
         self.batch_size = 10000
@@ -1104,7 +1106,8 @@ class TestDropout(unittest.TestCase):
         drop_layer = Dropout.Dropout(0.5)
         output = drop_layer.forward(self.input_tensor)
         error_prev = drop_layer.backward(self.input_tensor)
-        np.testing.assert_almost_equal(np.where(output == 0.), np.where(error_prev == 0.))
+        np.testing.assert_almost_equal(
+            np.where(output == 0.), np.where(error_prev == 0.))
 
     def test_forward_testTime(self):
         drop_layer = Dropout.Dropout(0.5)
@@ -1133,13 +1136,16 @@ class TestDropout(unittest.TestCase):
         layers = list()
         layers.append(Dropout.Dropout(0.5))
         layers.append(L2Loss())
-        difference = Helpers.gradient_check(layers, input_tensor, label_tensor, seed=1337)
+        difference = Helpers.gradient_check(
+            layers, input_tensor, label_tensor, seed=1337)
         self.assertLessEqual(np.sum(difference), 1e-5)
 
-class TestNeuralNetwork2(unittest.TestCase):
-    plot = True
+
+class TestNeuralNetwork(unittest.TestCase):
+    plot = False
     directory = 'plots/'
     log = 'log.txt'
+    iterations = 100
 
     def test_append_layer(self):
         # this test checks if your network actually appends layers, whether it copies the optimizer to these layers, and
@@ -1157,17 +1163,17 @@ class TestNeuralNetwork2(unittest.TestCase):
         self.assertTrue(np.all(net.layers[0].weights == 0.123))
 
     def test_data_access(self):
+        np.random.seed(None)
         net = NeuralNetwork.NeuralNetwork(Optimizers.Sgd(1e-4),
-                                          Initializers.UniformRandom(),
-                                          Initializers.Constant(0.1))
+                                          )
         categories = 3
         input_size = 4
         net.data_layer = Helpers.IrisData(50)
         net.loss_layer = Loss.CrossEntropyLoss()
-        fcl_1 = FullyConnected.Linear(input_size, categories)
+        fcl_1 = FullyConnected.Linear(input_size, categories, weights_initializer=Initializers.UniformRandom())
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.Linear(categories, categories)
+        fcl_2 = FullyConnected.Linear(categories, categories, Initializers.UniformRandom())
         net.append_layer(fcl_2)
         net.append_layer(SoftMax.SoftMax())
 
@@ -1177,26 +1183,26 @@ class TestNeuralNetwork2(unittest.TestCase):
         self.assertNotEqual(out, out2)
 
     def test_iris_data(self):
+        np.random.seed(None)
         net = NeuralNetwork.NeuralNetwork(Optimizers.Sgd(1e-3),
-                                          Initializers.UniformRandom(),
-                                          Initializers.Constant(0.1))
+                                          )
         categories = 3
         input_size = 4
         net.data_layer = Helpers.IrisData(100)
         net.loss_layer = Loss.CrossEntropyLoss()
-        fcl_1 = FullyConnected.Linear(input_size, categories)
+        fcl_1 = FullyConnected.Linear(input_size, categories, Initializers.UniformRandom())
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.Linear(categories, categories)
+        fcl_2 = FullyConnected.Linear(categories, categories,Initializers.UniformRandom() )
         net.append_layer(fcl_2)
         net.append_layer(SoftMax.SoftMax())
 
         net.train(4000)
-        if TestNeuralNetwork2.plot:
+        if TestNeuralNetwork.plot:
             fig = plt.figure(
                 'Loss function for a Neural Net on the Iris dataset using SGD')
             plt.plot(net.loss, '-x')
-            fig.savefig(os.path.join(self.directory, "TestNeuralNetwork2.pdf"),
+            fig.savefig(os.path.join(self.directory, "TestNeuralNetwork3.pdf"),
                         transparent=True, bbox_inches='tight', pad_inches=0)
 
         data, labels = net.data_layer.get_test_set()
@@ -1209,27 +1215,54 @@ class TestNeuralNetwork2(unittest.TestCase):
                   str(accuracy * 100) + '%', file=f)
         self.assertGreater(accuracy, 0.9)
 
+    def _test_regularization_loss(self):
+        '''
+        This test checks if the regularization loss is calculated for the fc and rnn layer and tracked in the
+        NeuralNetwork class
+        '''
+        import random
+        fcl = FullyConnected.FullyConnected(4, 3)
+        rnn = RNN.RNN(4, 4, 3)
+
+        for layer in [fcl, rnn]:
+            loss = []
+            for reg in [False, True]:
+                opt = Optimizers.Sgd(1e-3)
+                if reg:
+                    opt.add_regularizer(Constraints.L1_Regularizer(8e-2))
+                net = NeuralNetwork.NeuralNetwork(opt, Initializers.Constant(0.5),
+                                                  Initializers.Constant(0.1))
+
+                net.data_layer = Helpers.IrisData(100, random=False)
+                net.loss_layer = Loss.CrossEntropyLoss()
+                net.append_layer(layer)
+                net.append_layer(SoftMax.SoftMax())
+                net.train(1)
+                loss.append(np.sum(net.loss))
+
+            self.assertNotEqual(loss[0], loss[1], "Regularization Loss is not calculated and added to the overall loss "
+                                                  "for " + layer.__class__.__name__)
+
     def test_iris_data_with_momentum(self):
-        net = NeuralNetwork.NeuralNetwork(Optimizers.SgdWithMomentum(1e-3, 0.8),
-                                          Initializers.UniformRandom(),
-                                          Initializers.Constant(0.1))
+        np.random.seed(None)
+        net = NeuralNetwork.NeuralNetwork(Optimizers.SgdWithMomentum(1e-3, 0.8),)
         categories = 3
         input_size = 4
         net.data_layer = Helpers.IrisData(100)
         net.loss_layer = Loss.CrossEntropyLoss()
-        fcl_1 = FullyConnected.LinearLinear(input_size, categories)
+        fcl_1 = FullyConnected.Linear(input_size, categories, Initializers.UniformRandom())
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.LinearLinear(categories, categories)
+        fcl_2 = FullyConnected.Linear(categories, categories, Initializers.UniformRandom())
         net.append_layer(fcl_2)
         net.append_layer(SoftMax.SoftMax())
 
         net.train(2000)
-        if TestNeuralNetwork2.plot:
+        if TestNeuralNetwork.plot:
             fig = plt.figure(
                 'Loss function for a Neural Net on the Iris dataset using Momentum')
             plt.plot(net.loss, '-x')
-            fig.savefig(os.path.join(self.directory, "TestNeuralNetwork2_Momentum.pdf"),
+            fig.savefig(os.path.join(self.directory, "TestNeuralNetwork3_Momentum.pdf"),
                         transparent=True, bbox_inches='tight', pad_inches=0)
 
         data, labels = net.data_layer.get_test_set()
@@ -1243,26 +1276,25 @@ class TestNeuralNetwork2(unittest.TestCase):
         self.assertGreater(accuracy, 0.9)
 
     def test_iris_data_with_adam(self):
-        net = NeuralNetwork.NeuralNetwork(Optimizers.Adam(1e-2, 0.9, 0.999),
-                                          Initializers.UniformRandom(),
-                                          Initializers.Constant(0.1))
+        np.random.seed(None)
+        net = NeuralNetwork.NeuralNetwork(Optimizers.Adam(1e-3, 0.9, 0.999),)
         categories = 3
         input_size = 4
         net.data_layer = Helpers.IrisData(100)
         net.loss_layer = Loss.CrossEntropyLoss()
-        fcl_1 = FullyConnected.Linear(input_size, categories)
+        fcl_1 = FullyConnected.Linear(input_size, categories, Initializers.UniformRandom())
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.Linear(categories, categories)
+        fcl_2 = FullyConnected.Linear(categories, categories, Initializers.UniformRandom())
         net.append_layer(fcl_2)
         net.append_layer(SoftMax.SoftMax())
 
-        net.train(2000)
-        if TestNeuralNetwork2.plot:
+        net.train(3000)
+        if TestNeuralNetwork.plot:
             fig = plt.figure(
                 'Loss function for a Neural Net on the Iris dataset using ADAM')
             plt.plot(net.loss, '-x')
-            fig.savefig(os.path.join(self.directory, "TestNeuralNetwork2_ADAM.pdf"),
+            fig.savefig(os.path.join(self.directory, "TestNeuralNetwork3_ADAM.pdf"),
                         transparent=True, bbox_inches='tight', pad_inches=0)
 
         data, labels = net.data_layer.get_test_set()
@@ -1275,10 +1307,117 @@ class TestNeuralNetwork2(unittest.TestCase):
                   str(accuracy * 100) + '%', file=f)
         self.assertGreater(accuracy, 0.9)
 
+    def test_iris_data_with_batchnorm(self):
+        np.random.seed(None)
+        net = NeuralNetwork.NeuralNetwork(Optimizers.Adam(1e-2, 0.9, 0.999),)
+        categories = 3
+        input_size = 4
+        net.data_layer = Helpers.IrisData(50)
+        net.loss_layer = Loss.CrossEntropyLoss()
+        net.append_layer(BatchNormalization.BatchNormalization(input_size))
+        fcl_1 = FullyConnected.Linear(input_size, categories, Initializers.UniformRandom())
+        net.append_layer(fcl_1)
+        net.append_layer(ReLU.ReLU())
+        fcl_2 = FullyConnected.Linear(categories, categories,Initializers.UniformRandom() )
+        net.append_layer(fcl_2)
+        net.append_layer(SoftMax.SoftMax())
+
+        net.train(2000)
+        if TestNeuralNetwork.plot:
+            fig = plt.figure(
+                'Loss function for a Neural Net on the Iris dataset using Batchnorm')
+            plt.plot(net.loss, '-x')
+            fig.savefig(os.path.join(self.directory, "TestNeuralNetwork3_Batchnorm.pdf"),
+                        transparent=True, bbox_inches='tight', pad_inches=0)
+
+        data, labels = net.data_layer.get_test_set()
+
+        results = net.test(data)
+
+        results_next_run = net.test(data)
+
+        accuracy = Helpers.calculate_accuracy(results, labels)
+        with open(self.log, 'a') as f:
+            print('On the Iris dataset using Batchnorm, we achieve an accuracy of: ' +
+                  str(accuracy * 100.) + '%', file=f)
+        self.assertGreater(accuracy, 0.8)
+        self.assertEqual(np.mean(np.square(results - results_next_run)), 0)
+
+    def test_iris_data_with_dropout(self):
+        np.random.seed(None)
+        net = NeuralNetwork.NeuralNetwork(Optimizers.Adam(1e-2, 0.9, 0.999),
+                                          Initializers.UniformRandom(),
+                                          Initializers.Constant(0.1))
+        categories = 3
+        input_size = 4
+        net.data_layer = Helpers.IrisData(50)
+        net.loss_layer = Loss.CrossEntropyLoss()
+        fcl_1 = FullyConnected.Linear(input_size, categories)
+        net.append_layer(fcl_1)
+        net.append_layer(ReLU.ReLU())
+        fcl_2 = FullyConnected.Linear(categories, categories)
+        net.append_layer(fcl_2)
+        net.append_layer(Dropout.Dropout(0.3))
+        net.append_layer(SoftMax.SoftMax())
+
+        net.train(2000)
+        if TestNeuralNetwork.plot:
+            fig = plt.figure(
+                'Loss function for a Neural Net on the Iris dataset using Dropout')
+            plt.plot(net.loss, '-x')
+            fig.savefig(os.path.join(self.directory, "TestNeuralNetwork3_Dropout.pdf"),
+                        transparent=True, bbox_inches='tight', pad_inches=0)
+
+        data, labels = net.data_layer.get_test_set()
+
+        results = net.test(data)
+
+        accuracy = Helpers.calculate_accuracy(results, labels)
+
+        results_next_run = net.test(data)
+
+        with open(self.log, 'a') as f:
+            print('On the Iris dataset using Dropout, we achieve an accuracy of: ' +
+                  str(accuracy * 100.) + '%', file=f)
+        self.assertEqual(np.mean(np.square(results - results_next_run)), 0)
+
+    def test_layer_phases(self):
+        np.random.seed(None)
+        net = NeuralNetwork.NeuralNetwork(Optimizers.Adam(1e-2, 0.9, 0.999),
+                                          Initializers.UniformRandom(),
+                                          Initializers.Constant(0.1))
+        categories = 3
+        input_size = 4
+        net.data_layer = Helpers.IrisData(50)
+        net.loss_layer = Loss.CrossEntropyLoss()
+        net.append_layer(BatchNormalization.BatchNormalization(input_size))
+        fcl_1 = FullyConnected.Linear(input_size, categories)
+        net.append_layer(fcl_1)
+        net.append_layer(ReLU.ReLU())
+        fcl_2 = FullyConnected.Linear(categories, categories)
+        net.append_layer(fcl_2)
+        net.append_layer(Dropout.Dropout(0.3))
+        net.append_layer(SoftMax.SoftMax())
+
+        net.train(100)
+
+        data, labels = net.data_layer.get_test_set()
+        results = net.test(data)
+
+        bn_phase = net.layers[0].testing_phase
+        drop_phase = net.layers[4].testing_phase
+
+        self.assertTrue(bn_phase)
+        self.assertTrue(drop_phase)
+
+    def test_digit_data2(self):
+        adam = Optimizers.Adam(5e-3, 0.98, 0.999)
+        self._perform_test(
+            adam, TestNeuralNetwork.iterations, 'ADAM', False, False)
+        
     def test_digit_data(self):
         net = NeuralNetwork.NeuralNetwork(Optimizers.Adam(5e-3, 0.98, 0.999),
-                                          Initializers.He(),
-                                          Initializers.Constant(0.1))
+                                          )
         input_image_shape = (1, 8, 8)
         conv_stride_shape = (1, 1)
         convolution_shape = (1, 3, 3)
@@ -1289,9 +1428,7 @@ class TestNeuralNetwork2(unittest.TestCase):
         net.data_layer = Helpers.DigitData(batch_size)
         net.loss_layer = Loss.CrossEntropyLoss()
 
-        cl_1 = Conv.Conv2d(in_channels=1, out_channels=num_kernels,
-                           kernel_size=(3, 3), stride=1, padding='same')
-
+        cl_1 = Conv.Conv2d(stride=conv_stride_shape, kernel_size=3, in_channels=1, out_channels=num_kernels, padding="same")
         net.append_layer(cl_1)
         cl_1_output_shape = (*input_image_shape[1:], num_kernels)
         net.append_layer(ReLU.ReLU())
@@ -1303,27 +1440,23 @@ class TestNeuralNetwork2(unittest.TestCase):
 
         net.append_layer(Flatten.Flatten())
 
-        fcl_1 = FullyConnected.Linear(
-            fcl_1_input_size, int(fcl_1_input_size/2.))
+        fcl_1 = FullyConnected.Linear(fcl_1_input_size, int(fcl_1_input_size/2.))
         net.append_layer(fcl_1)
 
         net.append_layer(ReLU.ReLU())
 
-        fcl_2 = FullyConnected.Linear(
-            int(fcl_1_input_size/2.), categories)
+        fcl_2 = FullyConnected.Linear(int(fcl_1_input_size/2.), categories)
         net.append_layer(fcl_2)
 
         net.append_layer(SoftMax.SoftMax())
 
         net.train(200)
 
-        if TestNeuralNetwork2.plot:
+        if TestNeuralNetwork.plot:
             description = 'on_digit_data'
-            fig = plt.figure(
-                'Loss function for training a Convnet on the Digit dataset')
+            fig = plt.figure('Loss function for training a Convnet on the Digit dataset')
             plt.plot(net.loss, '-x')
-            fig.savefig(os.path.join(self.directory, "TestConvNet_" + description +
-                        ".pdf"), transparent=True, bbox_inches='tight', pad_inches=0)
+            fig.savefig(os.path.join(self.directory, "TestConvNet_" + description + ".pdf"), transparent=True, bbox_inches='tight', pad_inches=0)
 
         data, labels = net.data_layer.get_test_set()
 
@@ -1331,11 +1464,100 @@ class TestNeuralNetwork2(unittest.TestCase):
 
         accuracy = Helpers.calculate_accuracy(results, labels)
         with open(self.log, 'a') as f:
-            print('On the UCI ML hand-written digits dataset, we achieve an accuracy of: ' +
-                  str(accuracy * 100) + '%', file=f)
-        print('\nOn the UCI ML hand-written digits dataset, we achieve an accuracy of: ' +
-              str(accuracy * 100) + '%')
+            print('On the UCI ML hand-written digits dataset, we achieve an accuracy of: ' + str(accuracy * 100) + '%', file=f)
+        print('\nOn the UCI ML hand-written digits dataset, we achieve an accuracy of: ' + str(accuracy * 100) + '%')
         self.assertGreater(accuracy, 0.5)
+
+    def _test_digit_data_L2_Regularizer(self):
+        sgd_with_l2 = Optimizers.Adam(5e-3, 0.98, 0.999)
+        sgd_with_l2.add_regularizer(Constraints.L2_Regularizer(8e-2))
+        self._perform_test(
+            sgd_with_l2, TestNeuralNetwork3.iterations, 'L2_regularizer', False, False)
+
+    def _test_digit_data_L1_Regularizer(self):
+        sgd_with_l1 = Optimizers.Adam(5e-3, 0.98, 0.999)
+        sgd_with_l1.add_regularizer(Constraints.L1_Regularizer(8e-2))
+        self._perform_test(
+            sgd_with_l1, TestNeuralNetwork3.iterations, 'L1_regularizer', False, False)
+
+    def test_digit_data_dropout(self):
+        sgd_with_l2 = Optimizers.Adam(5e-3, 0.98, 0.999)
+        # sgd_with_l2.add_regularizer(Constraints.L2_Regularizer(4e-4))
+        self._perform_test(
+            sgd_with_l2, TestNeuralNetwork.iterations, 'Dropout', True, False)
+
+    def test_digit_batch_norm(self):
+        adam = Optimizers.Adam(1e-2, 0.98, 0.999)
+        self._perform_test(adam, TestNeuralNetwork.iterations,
+                           'Batch_norm', False, True)
+
+    def _test_all(self):
+        sgd_with_l2 = Optimizers.Adam(1e-2, 0.98, 0.999)
+        sgd_with_l2.add_regularizer(Constraints.L2_Regularizer(8e-2))
+        self._perform_test(
+            sgd_with_l2, TestNeuralNetwork.iterations, 'Batch_norm and L2', False, True)
+
+    def _perform_test(self, optimizer, iterations, description, dropout, batch_norm):
+        np.random.seed(None)
+        net = NeuralNetwork.NeuralNetwork(optimizer,
+                                          )
+        input_image_shape = (1, 8, 8)
+        conv_stride_shape = (1, 1)
+        convolution_shape = (1, 3, 3)
+        categories = 10
+        batch_size = 100
+        num_kernels = 4
+
+        net.data_layer = Helpers.DigitData(batch_size)
+        net.loss_layer = Loss.CrossEntropyLoss()
+
+        if batch_norm:
+            net.append_layer(BatchNormalization.BatchNorm2d(1))
+
+        cl_1 = Conv.Conv2d(stride=conv_stride_shape, in_channels=1, kernel_size=3, out_channels=num_kernels, padding="same")
+        net.append_layer(cl_1)
+        cl_1_output_shape = (num_kernels, *input_image_shape[1:])
+
+        if batch_norm:
+            net.append_layer(BatchNormalization.BatchNorm2d(num_kernels))
+
+        net.append_layer(ReLU.ReLU())
+
+        fcl_1_input_size = np.prod(cl_1_output_shape)
+
+        net.append_layer(Flatten.Flatten())
+
+        fcl_1 = FullyConnected.Linear(
+            fcl_1_input_size, int(fcl_1_input_size/2.))
+        net.append_layer(fcl_1)
+
+        if dropout:
+            net.append_layer(Dropout.Dropout(0.3))
+
+        net.append_layer(ReLU.ReLU())
+
+        fcl_2 = FullyConnected.Linear(
+            int(fcl_1_input_size / 2), int(fcl_1_input_size / 3))
+        net.append_layer(fcl_2)
+
+        net.append_layer(ReLU.ReLU())
+
+        fcl_3 = FullyConnected.Linear(int(fcl_1_input_size / 3), categories)
+        net.append_layer(fcl_3)
+
+        net.append_layer(SoftMax.SoftMax())
+
+        net.train(iterations)
+        data, labels = net.data_layer.get_test_set()
+
+        results = net.test(data)
+
+        accuracy = Helpers.calculate_accuracy(results, labels)
+        with open(self.log, 'a') as f:
+            print('On the UCI ML hand-written digits dataset using {} we achieve an accuracy of: {}%'.format(
+                description, accuracy * 100.), file=f)
+        print('\nOn the UCI ML hand-written digits dataset using {} we achieve an accuracy of: {}%'.format(description, accuracy * 100.))
+        self.assertGreater(accuracy, 0.3)
 
 
 class TestSoftMax(unittest.TestCase):
