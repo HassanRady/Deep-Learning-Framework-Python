@@ -6,6 +6,7 @@ import numpy as np
 
 _logger = get_file_logger(__name__)
 
+
 class Model(object):
     def __init__(self, model=None) -> None:
         self.model = []
@@ -20,18 +21,18 @@ class Model(object):
         loss = self.loss.forward(output, y)
         self.backward(y)
         return loss, output
-    
+
     def val_step(self, x, y):
         output = self.forward(x)
         loss = self.loss.forward(output, y)
         return loss, output
-    
+
     def train_epoch(self):
         running_preds = []
         running_loss = 0.0
         for x_batch, y_batch in self.batcher(self.x_train, self.y_train):
             batch_loss, predictions = self.train_step(x_batch, y_batch)
-            
+
             running_loss += batch_loss
             running_preds.append(predictions)
 
@@ -87,11 +88,25 @@ class Model(object):
         self.eval_output['loss'] = val_losses
         self.eval_output['predictions'] = val_preds
         return self.train_output, self.eval_output
-    
-    def train(self, x, y):
+
+    def train(self, x, y, epochs):
         self.x_train = x
         self.y_train = y
-        return self.train_epoch()
+
+        train_losses = []
+        train_preds = []
+
+        for i in range(1, epochs+1):
+            print(f"Epoch {i}: \n")
+
+            loss, preds = self.train_epoch()
+
+            train_losses.append(loss)
+            train_preds.append(preds)
+
+        self.train_output['loss'] = train_losses
+        self.train_output['preds'] = train_preds
+        return self.train_output
 
     def eval(self, x, y, epochs):
         self.x_val = x
@@ -116,12 +131,10 @@ class Model(object):
         if isinstance(layer, BaseLayer):
             self.model.append(layer)
 
-    def compile(self, optimizer, loss, batch_size, metrics):
+    def compile(self, optimizer, loss, batch_size):
         self.batch_size = batch_size
         self.loss = loss
         self.set_optimizer(optimizer)
-
-
 
     def set_optimizer(self, optimizer):
         for layer in self.model:
