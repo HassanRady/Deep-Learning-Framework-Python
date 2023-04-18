@@ -9,6 +9,8 @@ _logger = get_file_logger(__name__)
 class Model(object):
     def __init__(self, model=None) -> None:
         self.model = []
+        self.train_output = {}
+        self.eval_output = {}
 
         if isinstance(model, list):
             self.model = model
@@ -17,12 +19,12 @@ class Model(object):
         output = self.forward(x)
         loss = self.loss.forward(output, y)
         self.backward(y)
-        return loss
+        return loss, output
     
     def val_step(self, x, y):
         output = self.forward(x)
         loss = self.loss.forward(output, y)
-        return loss
+        return loss, output
     
     def train_epoch(self):
         running_preds = []
@@ -34,14 +36,19 @@ class Model(object):
             running_preds.append(predictions)
 
         epoch_loss = running_loss/self.data_len
-        return epoch_loss
+        return epoch_loss, running_preds
 
     def eval_epoch(self):
-        loss = 0.0
+        running_preds = []
+        running_loss = 0.0
         for x_batch, y_batch in self.batcher(self.x_val, self.y_val):
-            loss += self.val_step(x_batch, y_batch)
-        epoch_loss = loss/self.data_len
-        return epoch_loss
+            batch_loss, predictions = self.val_step(x_batch, y_batch)
+
+            running_loss += batch_loss
+            running_preds.append(predictions)
+
+        epoch_loss = batch_loss/self.data_len
+        return epoch_loss, running_preds
 
     def batcher(self, x, y):
         x = np.array_split(x, len(x)//self.batch_size)
@@ -49,6 +56,37 @@ class Model(object):
         self.data_len = len(x)
         for x_batch, y_batch in zip(x, y):
             yield x_batch, y_batch
+
+    def fit(self, x_train, y_train, x_val, y_val, epochs):
+        self.x_train = x_train
+        self.y_train = y_train
+        self.x_val = x_val
+        self.y_val = y_val
+
+        train_losses = []
+        train_preds = []
+        val_losses = []
+        val_preds = []
+
+        for i in range(1, epochs + 1):
+            print(f"EPOCH {i}: ")
+
+            train_loss, train_pred = self.train_epoch()
+            val_loss, val_pred = self.eval_epoch()
+
+            train_losses.append(train_loss)
+            train_preds.append(train_pred)
+            val_losses.append(val_loss)
+            val_preds.append(val_pred)
+
+            print(f"Train Loss: {train_loss:.2f}")
+            print(f"Val Loss: {val_loss:.2f} \n")
+
+        self.train_output['loss'] = train_losses
+        self.train_output['predictions'] = train_preds
+        self.eval_output['loss'] = val_losses
+        self.eval_output['predictions'] = val_preds
+        return self.train_output, self.eval_output
     
     def train(self, x, y):
         self.x_train = x
@@ -70,8 +108,9 @@ class Model(object):
             val_losses.append(loss)
             val_preds.append(preds)
 
-        # metric = calc_metric(val_preds)
-        return {"loss": val_losses, "preds": val_preds}
+        self.eval_output['loss'] = val_losses
+        self.eval_output['preds'] = val_preds
+        return self.eval_output
 
     def append_layer(self, layer: BaseLayer):
         if isinstance(layer, BaseLayer):
