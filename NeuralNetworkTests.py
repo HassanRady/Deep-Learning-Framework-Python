@@ -1505,7 +1505,7 @@ class TestNeuralNetwork(unittest.TestCase):
         conv_stride_shape = (1, 1)
         convolution_shape = (1, 3, 3)
         categories = 10
-        batch_size = 100
+        batch_size = 200
         num_kernels = 4
 
         net.data_layer = Helpers.DigitData(batch_size)
