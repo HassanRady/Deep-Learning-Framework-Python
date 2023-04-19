@@ -9,7 +9,7 @@ currentdir = os.path.dirname(os.path.abspath(
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-_logger = get_file_logger(__name__)
+_logger = get_file_logger(__name__, 'debug')
 
 
 class BatchNorm2d(BaseLayer):

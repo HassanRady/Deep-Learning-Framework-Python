@@ -3,7 +3,7 @@ from Layers.Initializers import He, Constant
 import numpy as np
 
 from logger import get_file_logger
-_logger = get_file_logger(__name__)
+_logger = get_file_logger(__name__, 'debug')
 class Linear(BaseLayer):
     def __init__(self, in_features, out_features, weights_initializer=He(), bias_initializer=Constant(0.1)):
         super().__init__()

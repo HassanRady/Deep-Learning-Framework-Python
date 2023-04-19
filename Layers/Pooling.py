@@ -11,7 +11,7 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
 
-_logger = get_file_logger(__name__)
+_logger = get_file_logger(__name__, 'debug')
 
 class MaxPool2d(BaseLayer):
     def __init__(self, kernel_size, stride):

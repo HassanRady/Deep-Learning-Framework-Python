@@ -10,7 +10,7 @@ import numpy as np
 
 from logger import get_file_logger
 
-_logger = get_file_logger(__name__)
+_logger = get_file_logger(__name__, 'debug')
 
 class Sgd:
     def __init__(self, learning_rate: float) -> None:
