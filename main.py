@@ -93,7 +93,7 @@ model = [
 ]
 
 
-from Model import Model
+from DLstorm.Model import Model
 
 batch_size = 16
 model = Model(model)
