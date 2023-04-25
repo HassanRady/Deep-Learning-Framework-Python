@@ -193,6 +193,7 @@ cython_debug/
 test.py
 *.log
 logs.*
+debug.log
 checkpoint/
 test2.py
 
