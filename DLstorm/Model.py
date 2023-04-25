@@ -16,7 +16,6 @@ class Model(object):
             self.model = model
 
     def train_step(self, x, y):
-        _logger.debug("test")
         output = self.forward(x)
         loss = self.loss.forward(output, y)
         self.backward(y)
