@@ -1,3 +1,4 @@
+from DLstorm.logger import get_file_logger
 import numpy as np
 from DLstorm.Layers.Base import BaseLayer
 import os
@@ -9,9 +10,9 @@ currentdir = os.path.dirname(os.path.abspath(
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-from DLstorm.logger import get_file_logger
 
 _logger = get_file_logger(__name__, 'debug')
+
 
 class MaxPool2d(BaseLayer):
     def __init__(self, kernel_size, stride):
@@ -24,16 +25,16 @@ class MaxPool2d(BaseLayer):
         self.kernel_size = kernel_size
         self.kernel_size_dim1 = self.kernel_size[0]
         self.kernel_size_dim2 = self.kernel_size[1]
-        
+
         if isinstance(stride, int):
             stride = self.to_tuple(stride)
         self.stride_shape = stride
         self.stride_size_dim1 = self.stride_shape[0]
         self.stride_size_dim2 = self.stride_shape[1]
-    
+
     def to_tuple(self, int_value):
         return (int_value, int_value)
-    
+
     def get_shape_after_pooling(self, dim_size, kernel_size, stride) -> int:
         return 1 + (dim_size - kernel_size)//stride
 
@@ -60,9 +61,10 @@ class MaxPool2d(BaseLayer):
 
         self.batch_size, self.output_channels, input_size_dim1, input_size_dim2 = input_tensor.shape
 
-        self.forward_output_shape = self.get_output_shape_for_img(input_size_dim1, input_size_dim2)
+        self.forward_output_shape = self.get_output_shape_for_img(
+            input_size_dim1, input_size_dim2)
         (_, _, output_size_dim1, output_size_dim2) = self.forward_output_shape
-        
+
         output = np.zeros(self.forward_output_shape)
 
         for n in range(self.batch_size):
@@ -72,9 +74,6 @@ class MaxPool2d(BaseLayer):
 
         return output
 
-            
-
-
     def backward(self, error_tensor):
         batch_size, output_channels, input_size_dim1, input_size_dim2 = error_tensor.shape
         input_gradient = np.zeros_like(self.input_tensor)
@@ -82,7 +81,8 @@ class MaxPool2d(BaseLayer):
         for n in range(batch_size):
             for channel in range(output_channels):
                 for slice, i, j, start_dim1, end_dim1, start_dim2, end_dim2 in self.generate_slice(self.input_tensor[n, channel], input_size_dim1, input_size_dim2):
-                
-                        mask = slice == np.max(slice)
-                        input_gradient[n, channel, start_dim1:end_dim1, start_dim2:end_dim2] +=  mask * error_tensor[n, channel, i, j]
+
+                    mask = slice == np.max(slice)
+                    input_gradient[n, channel, start_dim1:end_dim1,
+                                   start_dim2:end_dim2] += mask * error_tensor[n, channel, i, j]
         return input_gradient

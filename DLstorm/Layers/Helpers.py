@@ -10,7 +10,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.datasets import load_iris, load_digits
 
 
-def gradient_check(layers, input_tensor, label_tensor, seed = None):
+def gradient_check(layers, input_tensor, label_tensor, seed=None):
     epsilon = 1e-5
     difference = np.zeros_like(input_tensor)
 
@@ -47,12 +47,14 @@ def gradient_check(layers, input_tensor, label_tensor, seed = None):
         numerical_derivative = (upper_error - lower_error) / (2 * epsilon)
 
         # print('Analytical: ' + str(analytical_derivative) + ' vs Numerical :' + str(numerical_derivative))
-        normalizing_constant = max(np.abs(analytical_derivative), np.abs(numerical_derivative))
+        normalizing_constant = max(
+            np.abs(analytical_derivative), np.abs(numerical_derivative))
 
         if normalizing_constant < 1e-15:
             difference[it.multi_index] = 0
         else:
-            difference[it.multi_index] = np.abs(analytical_derivative - numerical_derivative) / normalizing_constant
+            difference[it.multi_index] = np.abs(
+                analytical_derivative - numerical_derivative) / normalizing_constant
 
         it.iternext()
     return difference
@@ -108,16 +110,19 @@ def gradient_check_weights(layers, input_tensor, label_tensor, bias):
             minus_epsilon_activation = layer.forward(minus_epsilon_activation)
 
         upper_error = layers[-1].forward(plus_epsilon_activation, label_tensor)
-        lower_error = layers[-1].forward(minus_epsilon_activation, label_tensor)
+        lower_error = layers[-1].forward(
+            minus_epsilon_activation, label_tensor)
 
         numerical_derivative = (upper_error - lower_error) / (2 * epsilon)
 
-        normalizing_constant = max(np.abs(analytical_derivative), np.abs(numerical_derivative))
+        normalizing_constant = max(
+            np.abs(analytical_derivative), np.abs(numerical_derivative))
 
         if normalizing_constant < 1e-15:
             difference[it.multi_index] = 0
         else:
-            difference[it.multi_index] = np.abs(analytical_derivative - numerical_derivative) / normalizing_constant
+            difference[it.multi_index] = np.abs(
+                analytical_derivative - numerical_derivative) / normalizing_constant
 
         it.iternext()
     return difference
@@ -127,7 +132,8 @@ def compute_bn_gradients(error_tensor, input_tensor, weights, mean, var, eps=np.
     # computation of the gradient w.r.t the input for the batch_normalization layer
 
     if eps > 1e-10:
-        raise ArithmeticError("Eps must be lower than 1e-10. Your eps values %s" %(str(eps)))
+        raise ArithmeticError(
+            "Eps must be lower than 1e-10. Your eps values %s" % (str(eps)))
 
     norm_mean = input_tensor - mean
     var_eps = var + eps
@@ -135,12 +141,14 @@ def compute_bn_gradients(error_tensor, input_tensor, weights, mean, var, eps=np.
     gamma_err = error_tensor * weights
     inv_batch = 1. / error_tensor.shape[0]
 
-    grad_var = np.sum(norm_mean * gamma_err * -0.5 * (var_eps ** (-3 / 2)), keepdims=True, axis=0)
+    grad_var = np.sum(norm_mean * gamma_err * -0.5 *
+                      (var_eps ** (-3 / 2)), keepdims=True, axis=0)
 
     sqrt_var = np.sqrt(var_eps)
     first = gamma_err * 1. / sqrt_var
 
-    grad_mu_two = (grad_var * np.sum(-2. * norm_mean, keepdims=True, axis=0)) * inv_batch
+    grad_mu_two = (grad_var * np.sum(-2. * norm_mean,
+                   keepdims=True, axis=0)) * inv_batch
     grad_mu_one = np.sum(gamma_err * -1. / sqrt_var, keepdims=True, axis=0)
 
     second = grad_var * (2. * norm_mean) * inv_batch
@@ -197,13 +205,16 @@ class IrisData:
         self.random = random
         self.batch_size = batch_size
         self._data = load_iris()
-        self._label_tensor = OneHotEncoder(sparse=False).fit_transform(self._data.target.reshape(-1, 1))
+        self._label_tensor = OneHotEncoder(sparse=False).fit_transform(
+            self._data.target.reshape(-1, 1))
         self._input_tensor = self._data.data
         self._input_tensor /= np.abs(self._input_tensor).max()
 
-        self.split = int(self._input_tensor.shape[0]*(2/3))  # train / test split  == number of samples in train set
+        # train / test split  == number of samples in train set
+        self.split = int(self._input_tensor.shape[0]*(2/3))
 
-        self._input_tensor, self._label_tensor = shuffle_data(self._input_tensor, self._label_tensor)
+        self._input_tensor, self._label_tensor = shuffle_data(
+            self._input_tensor, self._label_tensor)
         self._input_tensor_train = self._input_tensor[:self.split, :]
         self._label_tensor_train = self._label_tensor[:self.split, :]
         self._input_tensor_test = self._input_tensor[self.split:, :]
@@ -215,7 +226,8 @@ class IrisData:
         num_iterations = int(np.ceil(self.split / self.batch_size))
         idx = np.arange(self.split)
         while True:
-            this_idx = np.random.choice(idx, self.split, replace=False) if self.random else idx
+            this_idx = np.random.choice(
+                idx, self.split, replace=False) if self.random else idx
             for i in range(num_iterations):
                 yield this_idx[i * self.batch_size:(i + 1) * self.batch_size]
 
@@ -226,17 +238,21 @@ class IrisData:
     def get_test_set(self):
         return self._input_tensor_test, self._label_tensor_test
 
+
 class DigitData:
     def __init__(self, batch_size):
         self.batch_size = batch_size
         self._data = load_digits(n_class=10)
-        self._label_tensor = OneHotEncoder(sparse=False).fit_transform(self._data.target.reshape(-1, 1))
+        self._label_tensor = OneHotEncoder(sparse=False).fit_transform(
+            self._data.target.reshape(-1, 1))
         self._input_tensor = self._data.data.reshape(-1, 1, 8, 8)
         self._input_tensor /= np.abs(self._input_tensor).max()
 
-        self.split = int(self._input_tensor.shape[0]*(2/3))  # train / test split  == number of samples in train set
+        # train / test split  == number of samples in train set
+        self.split = int(self._input_tensor.shape[0]*(2/3))
 
-        self._input_tensor, self._label_tensor = shuffle_data(self._input_tensor, self._label_tensor)
+        self._input_tensor, self._label_tensor = shuffle_data(
+            self._input_tensor, self._label_tensor)
         self._input_tensor_train = self._input_tensor[:self.split, :]
         self._label_tensor_train = self._label_tensor[:self.split, :]
         self._input_tensor_test = self._input_tensor[self.split:, :]
@@ -246,7 +262,7 @@ class DigitData:
 
     def _forward_idx_iterator(self):
         num_iterations = int(np.ceil(self.split / self.batch_size))
-        rest = self.batch_size-self.split%self.batch_size
+        rest = self.batch_size-self.split % self.batch_size
         idx = np.arange(self.split)
         while True:
             this_idx = np.random.choice(idx, self.split, replace=False)
@@ -277,7 +293,8 @@ class MNISTData:
         num_iterations = int(self.train.shape[0] / self.batch_size)
         idx = np.arange(self.train.shape[0])
         while True:
-            this_idx = np.random.choice(idx, self.train.shape[0], replace=False)
+            this_idx = np.random.choice(
+                idx, self.train.shape[0], replace=False)
             for i in range(num_iterations):
                 yield this_idx[i * self.batch_size:(i + 1) * self.batch_size]
 
@@ -286,7 +303,8 @@ class MNISTData:
         return self.train[idx, :], self.labels[idx, :]
 
     def show_random_training_image(self):
-        image = self.train[np.random.randint(0, self.train.shape[0]-1), :28 , :28]
+        image = self.train[np.random.randint(
+            0, self.train.shape[0]-1), :28, :28]
         plt.imshow(image.reshape(28, 28), cmap='gray')
         plt.show()
 
@@ -313,11 +331,15 @@ class MNISTData:
         root_dir = Path(__file__)
 
         if dataset == "training":
-            fname_img = root_dir.parent.parent.joinpath('Data', 'train-images-idx3-ubyte.gz')
-            fname_lbl = root_dir.parent.parent.joinpath('Data', 'train-labels-idx1-ubyte.gz')
+            fname_img = root_dir.parent.parent.joinpath(
+                'Data', 'train-images-idx3-ubyte.gz')
+            fname_lbl = root_dir.parent.parent.joinpath(
+                'Data', 'train-labels-idx1-ubyte.gz')
         elif dataset == "testing":
-            fname_img = root_dir.parent.parent.joinpath('Data', 't10k-images-idx3-ubyte.gz')
-            fname_lbl = root_dir.parent.parent.joinpath('Data', 't10k-labels-idx1-ubyte.gz')
+            fname_img = root_dir.parent.parent.joinpath(
+                'Data', 't10k-images-idx3-ubyte.gz')
+            fname_lbl = root_dir.parent.parent.joinpath(
+                'Data', 't10k-labels-idx1-ubyte.gz')
         else:
             raise ValueError("dataset must be 'testing' or 'training'")
 
@@ -327,7 +349,7 @@ class MNISTData:
 
             s = flbl.read(num)
             lbl = np.frombuffer(s, dtype=np.int8)
-            one_hot = np.zeros((lbl.shape[0],10))
+            one_hot = np.zeros((lbl.shape[0], 10))
             for idx, l in enumerate(lbl):
                 one_hot[idx, l] = 1
 
@@ -335,7 +357,8 @@ class MNISTData:
             magic, num, rows, cols = struct.unpack(">IIII", fimg.read(16))
 
             buffer = fimg.read(num * 32 * 32 * 8)
-            img = np.frombuffer(buffer, dtype=np.uint8).reshape(len(lbl), 1, rows,  cols)
+            img = np.frombuffer(buffer, dtype=np.uint8).reshape(
+                len(lbl), 1, rows,  cols)
             img = img.astype(np.float64)
             img /= 255.0
 

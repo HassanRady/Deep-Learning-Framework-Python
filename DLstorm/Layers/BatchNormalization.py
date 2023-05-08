@@ -1,3 +1,4 @@
+from DLstorm.logger import get_file_logger
 from DLstorm.Layers.Base import BaseLayer
 import numpy as np
 import os
@@ -9,7 +10,6 @@ currentdir = os.path.dirname(os.path.abspath(
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-from DLstorm.logger import get_file_logger
 _logger = get_file_logger(__name__, 'debug')
 
 
@@ -120,9 +120,11 @@ class BatchNorm2d(BaseLayer):
                                                                                        self.input_tensor_normalized * np.sum(gradient_input_normalized * self.input_tensor_normalized, axis=0))
 
         if self.optimizer:
-            self.gamma = self.optimizer.calculate_update(self.gamma, gradient_gamma)
-            self.beta = self.optimizer.calculate_update(self.beta, gradient_beta)
-        
+            self.gamma = self.optimizer.calculate_update(
+                self.gamma, gradient_gamma)
+            self.beta = self.optimizer.calculate_update(
+                self.beta, gradient_beta)
+
         der_input_tensor = self.reshape_tensor_for_output(der_input_tensor)
         return der_input_tensor
 

@@ -4,6 +4,8 @@ import numpy as np
 
 from DLstorm.logger import get_file_logger
 _logger = get_file_logger(__name__, 'debug')
+
+
 class Linear(BaseLayer):
     def __init__(self, in_features, out_features, weights_initializer=He(), bias_initializer=Constant(0.1)):
         super().__init__()
@@ -24,32 +26,33 @@ class Linear(BaseLayer):
         self.initialize()
 
     def initialize(self):
-        self.weights[:-1] = self.weights_initializer.initialize((self.input_size, self.output_size), self.input_size, self.output_size)
-        self.weights[-1:] = self.bias_initializer.initialize( (self.input_size, self.output_size), 1, self.output_size)
+        self.weights[:-1] = self.weights_initializer.initialize(
+            (self.input_size, self.output_size), self.input_size, self.output_size)
+        self.weights[-1:] = self.bias_initializer.initialize(
+            (self.input_size, self.output_size), 1, self.output_size)
 
     @property
     def optimizer(self):
         return self._optimizer
-    
+
     @optimizer.setter
     def optimizer(self, v):
         self._optimizer = v
 
-
-    def forward(self, X): # X is nXm W is mXm`
+    def forward(self, X):  # X is BATCHxFEATURES
         self.N = X.shape[0]
 
         self.input = np.concatenate((X, np.ones((self.N, 1))), axis=1)
 
-        self.output = self.input.dot(self.weights) 
- 
+        self.output = self.input.dot(self.weights)
+
         return self.output
-    
+
     def backward(self, y):
         self.gradient_weights = np.dot(self.input.T, y)
 
         if self.optimizer:
-            self.weights = self.optimizer.calculate_update(self.weights, self.gradient_weights)
-
-        return y.dot(self.weights.T)[:, :-1]
-        
+            self.weights = self.optimizer.calculate_update(
+                self.weights, self.gradient_weights)
+        out = y.dot(self.weights.T)[:, :-1]
+        return out
