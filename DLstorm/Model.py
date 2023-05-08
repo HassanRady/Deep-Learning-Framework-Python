@@ -6,6 +6,7 @@ import numpy as np
 
 _logger = get_file_logger(__name__, 'debug')
 
+
 class Model(object):
     def __init__(self, model=None) -> None:
         self.model = []
@@ -38,7 +39,8 @@ class Model(object):
         epoch_loss = running_loss/self.data_len
 
         running_preds = np.array(running_preds)
-        running_preds = running_preds.reshape(running_preds.shape[0]*running_preds.shape[1], running_preds.shape[2])
+        running_preds = running_preds.reshape(
+            running_preds.shape[0]*running_preds.shape[1], running_preds.shape[2])
 
         self.calc_metrics(running_preds, self.y_train)
 
@@ -60,7 +62,8 @@ class Model(object):
         epoch_loss = running_loss/self.data_len
 
         running_preds = np.array(running_preds)
-        running_preds = running_preds.reshape(running_preds.shape[0]*running_preds.shape[1], running_preds.shape[2])
+        running_preds = running_preds.reshape(
+            running_preds.shape[0]*running_preds.shape[1], running_preds.shape[2])
 
         self.calc_metrics(running_preds, self.y_val)
 
@@ -78,7 +81,7 @@ class Model(object):
         for x_batch, y_batch in zip(x, y):
             yield x_batch, y_batch
 
-    def fit(self, x_train, y_train, x_val, y_val, epochs):
+    def fit(self, x_train, y_train, x_val, y_val, epochs) -> tuple(dict, dict):
         self.x_train = x_train
         self.y_train = y_train
         self.x_val = x_val
@@ -161,7 +164,8 @@ class Model(object):
         self.metrics_output = {}
         for metric in self.metrics:
             if metric == "accuracy":
-                self.metrics_output['accuracy'] = self.calc_accuracy(preds, labels)
+                self.metrics_output['accuracy'] = self.calc_accuracy(
+                    preds, labels)
 
     def calc_accuracy(self, preds, labels):
         preds = np.argmax(preds, axis=1)
