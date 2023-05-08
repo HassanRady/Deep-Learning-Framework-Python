@@ -14,8 +14,8 @@ class Dropout(BaseLayer):
             return input_tensor
 
         self.mask = np.random.rand(
-            input_tensor.shape[0], input_tensor.shape[1]) < self.p
-        res = input_tensor * self.mask
+            input_tensor.shape[-2], input_tensor.shape[-1]) < self.p
+        res = np.multiply(input_tensor, self.mask)
         res /= self.p
         return res
 
