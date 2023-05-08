@@ -1,13 +1,14 @@
-from Layers.Initializers import Xavier, He, UniformRandom, Constant
-from Layers.Conv import Conv2d
-from Layers.BatchNormalization import BatchNorm2d
-from Layers.Pooling import MaxPool2d
-from Layers.Flatten import Flatten
-from Layers.FullyConnected import Linear
-from Layers.ReLU import ReLU
-from Layers.SoftMax import SoftMax
-from Optimization.Loss import CrossEntropyLoss
-from Optimization.Optimizers import Adam, SgdWithMomentum, Sgd
+from DLstorm.Model import Model
+from DLstorm.Layers.Initializers import Xavier, He, UniformRandom, Constant
+from DLstorm.Layers.Conv import Conv2d
+from DLstorm.Layers.BatchNormalization import BatchNorm2d
+from DLstorm.Layers.Pooling import MaxPool2d
+from DLstorm.Layers.Flatten import Flatten
+from DLstorm.Layers.FullyConnected import Linear
+from DLstorm.Layers.ReLU import ReLU
+from DLstorm.Layers.SoftMax import SoftMax
+from DLstorm.Optimization.Loss import CrossEntropyLoss
+from DLstorm.Optimization.Optimizers import Adam, SgdWithMomentum, Sgd
 
 
 import numpy as np
@@ -63,7 +64,7 @@ model = [
 
 
     Flatten(),
-   
+
     Linear(in_features=64*7*7, out_features=128),
     ReLU(),
     Linear(128, 64),
@@ -72,32 +73,39 @@ model = [
     SoftMax(),
 ]
 
-model = [
-    Conv2d(in_channels=1, out_channels=4,
-           kernel_size=3, stride=1, padding='same'),
-    BatchNorm2d(4),
-    ReLU(),
-    MaxPool2d(kernel_size=2, stride=2),
-    Conv2d(in_channels=4, out_channels=4,
-           kernel_size=3, stride=1, padding='same'),
-    BatchNorm2d(4),
-    ReLU(),
-    MaxPool2d(kernel_size=2, stride=2),
-    
-    Flatten(),
-    
-    Linear(in_features=4*7*7, out_features=32),
-    ReLU(),
-    Linear(32, 10),
-    SoftMax(),
-]
-
-
-from DLstorm.Model import Model
 
 batch_size = 16
-model = Model(model)
-model.compile(Adam(5e-3, 0.98, 0.999), CrossEntropyLoss(), batch_size, metrics=['accuracy'])
+# model = Model(layers)
+
+model = Model()
+
+# model.append_layer(Conv2d(in_channels=1, out_channels=32,
+#                           kernel_size=3, stride=1, padding='same'))
+# model.append_layer(BatchNorm2d(32))
+# model.append_layer(ReLU())
+# model.append_layer(Conv2d(in_channels=32, out_channels=64,
+#                           kernel_size=3, stride=1, padding='same'))
+# model.append_layer(BatchNorm2d(64))
+# model.append_layer(ReLU())
+# model.append_layer(MaxPool2d(kernel_size=2, stride=2))
+
+# model.append_layer(Conv2d(in_channels=64, out_channels=64,
+#                           kernel_size=3, stride=1, padding='same'))
+# model.append_layer(BatchNorm2d(64))
+# model.append_layer(ReLU())
+# model.append_layer(MaxPool2d(kernel_size=2, stride=2))
+# model.append_layer(Flatten())
+# model.append_layer(Linear(in_features=64*7*7, out_features=128))
+# model.append_layer(ReLU())
+# model.append_layer(Linear(in_features=128, out_features=64))
+# model.append_layer(ReLU())
+# model.append_layer(Linear(in_features=64, out_features=10))
+# model.append_layer(SoftMax())
+
+
+model.compile(optimizer=Adam(learning_rate=5e-3, mu=0.98, rho=0.999), loss=CrossEntropyLoss(),
+              batch_size=batch_size, metrics=['accuracy'])
 
 epochs = 25
-history = model.fit(train_images, train_labels, val_images, val_labels, epochs)
+train_history, eval_history = model.fit(x_train=train_images, y_train=train_labels,
+                    x_val=val_images, y_val=val_labels, epochs=epochs)
