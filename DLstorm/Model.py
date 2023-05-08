@@ -81,7 +81,7 @@ class Model(object):
         for x_batch, y_batch in zip(x, y):
             yield x_batch, y_batch
 
-    def fit(self, x_train, y_train, x_val, y_val, epochs) -> tuple(dict, dict):
+    def fit(self, x_train, y_train, x_val, y_val, epochs):
         self.x_train = x_train
         self.y_train = y_train
         self.x_val = x_val
