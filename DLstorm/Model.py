@@ -45,7 +45,7 @@ class Model(object):
 
         print(f"Train loss: {epoch_loss:.2f}")
         for metric, metric_output in self.metrics_output.items():
-            self.fit_output[f"{metric}"] = metric_output
+            self.fit_output[f"{metric}"].append(metric_output)
             print(f"Train {metric}: {metric_output}")
 
         return epoch_loss, running_preds
@@ -69,7 +69,7 @@ class Model(object):
 
         print(f"Val loss: {epoch_loss:.2f}")
         for metric, metric_output in self.metrics_output.items():
-            self.fit_output[f"val_{metric}"] = metric_output
+            self.fit_output[f"val_{metric}"].append(metric_output)
             print(f"Val {metric}: {metric_output}")
 
         epoch_loss = batch_loss/self.data_len
@@ -92,6 +92,10 @@ class Model(object):
         train_preds = []
         val_losses = []
         val_preds = []
+
+        for metric in self.metrics:
+            self.fit_output[f"{metric}"] = []
+            self.fit_output[f"val_{metric}"] = []
 
         for i in range(1, epochs + 1):
             print(f"Epoch {i}: ")
