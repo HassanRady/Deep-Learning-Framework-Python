@@ -26,6 +26,7 @@ layers = [
     Conv2d(in_channels=1, out_channels=32,
            kernel_size=3, stride=1, padding='same'),
     BatchNorm2d(32),
+    Dropout(probability=0.3),
     ReLU(),
 
     Conv2d(in_channels=32, out_channels=64,
@@ -86,11 +87,24 @@ model.append_layer(SoftMax())
 
 
 ```py
-model.compile(optimizer=Adam(5e-3, 0.98, 0.999), loss=CrossEntropyLoss(), batch_size=batch_size, metrics=['accuracy'])
+batch_size = 16
+model.compile(optimizer=Adam(learning_rate=5e-3, mu=0.98, rho=0.999), loss=CrossEntropyLoss(),
+              batch_size=batch_size, metrics=['accuracy'])
 ```
 
 ## Model training:
 ```py
 epochs = 25
 history = model.fit(x_train=train_images, y_train=train_labels, x_val=val_images, y_val=val_labels, epochs=epochs)
+```
+
+## Model performance:
+```py
+plt.plot(history['accuracy'])
+plt.plot(history['val_accuracy'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'val'], loc='upper left')
+plt.show()
 ```
