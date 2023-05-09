@@ -1,5 +1,8 @@
 # DLstorm: Deep Learning Framework
 
+## Summary:
+Deep Learning Framework from scratch, with an API of a combination of pytorch and keras APIs, only uses numpy for tensor operations.
+
 ## Pip install:
 ```sh
 pip install DLstorm
