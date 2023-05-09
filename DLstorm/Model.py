@@ -10,8 +10,7 @@ _logger = get_file_logger(__name__, 'debug')
 class Model(object):
     def __init__(self, model=None) -> None:
         self.model = []
-        self.train_output = {}
-        self.eval_output = {}
+        self.fit_output = {}
 
         if isinstance(model, list):
             self.model = model
@@ -46,6 +45,7 @@ class Model(object):
 
         print(f"Train loss: {epoch_loss:.2f}")
         for metric, metric_output in self.metrics_output.items():
+            self.fit_output[f"{metric}"] = metric_output
             print(f"Train {metric}: {metric_output}")
 
         return epoch_loss, running_preds
@@ -69,6 +69,7 @@ class Model(object):
 
         print(f"Val loss: {epoch_loss:.2f}")
         for metric, metric_output in self.metrics_output.items():
+            self.fit_output[f"val_{metric}"] = metric_output
             print(f"Val {metric}: {metric_output}")
 
         epoch_loss = batch_loss/self.data_len
@@ -105,12 +106,12 @@ class Model(object):
 
             print()
 
-        self.train_output['loss'] = train_losses
-        self.train_output['predictions'] = train_preds
-        self.eval_output['loss'] = val_losses
-        self.eval_output['predictions'] = val_preds
+        self.fit_output['loss'] = train_losses
+        self.fit_output['predictions'] = train_preds
+        self.fit_output['val_loss'] = val_losses
+        self.fit_output['val_predictions'] = val_preds
 
-        return self.train_output, self.eval_output
+        return self.fit_output
 
     def train(self, x, y, epochs):
         self.x_train = x
@@ -127,9 +128,9 @@ class Model(object):
             train_losses.append(loss)
             train_preds.append(preds)
 
-        self.train_output['loss'] = train_losses
-        self.train_output['preds'] = train_preds
-        return self.train_output
+        self.fit_output['loss'] = train_losses
+        self.fit_output['preds'] = train_preds
+        return self.fit_output
 
     def eval(self, x, y, epochs):
         self.x_val = x
@@ -146,9 +147,9 @@ class Model(object):
             val_losses.append(loss)
             val_preds.append(preds)
 
-        self.eval_output['loss'] = val_losses
-        self.eval_output['preds'] = val_preds
-        return self.eval_output
+        self.fit_output['val_loss'] = val_losses
+        self.fit_output['val_preds'] = val_preds
+        return self.fit_output
 
     def append_layer(self, layer: BaseLayer):
         if isinstance(layer, BaseLayer):
