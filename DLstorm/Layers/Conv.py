@@ -39,7 +39,7 @@ class Conv2d(BaseLayer):
         self.kernel_size_dim2 = self.kernel_size[1]
         self.is_reduction_kernel = self.kernel_size == (1, 1)
 
-        self.check_padding_type(padding)
+        self.padding = padding
 
         self.weights_initializer = weights_initializer
         self.weight_shape = (
@@ -99,9 +99,9 @@ class Conv2d(BaseLayer):
         end_pad = kernel_size//2
         return (start_pad, end_pad)
 
-    def pad_img_same(self, imgs, dim1, dim2):
-        (start_pad_dim1, end_pad_dim1) = dim1
-        (start_pad_dim2, end_pad_dim2) = dim2
+    def pad_img_same(self, imgs):
+        (start_pad_dim1, end_pad_dim1) = self.pad_size_dim1
+        (start_pad_dim2, end_pad_dim2) = self.pad_size_dim2
         return np.pad(imgs, ((0, 0), (0, 0), (start_pad_dim1, end_pad_dim1), (start_pad_dim2, end_pad_dim2)), mode="constant")
 
     def remove_pad(self, imgs):
@@ -110,6 +110,11 @@ class Conv2d(BaseLayer):
         if self.is_reduction_kernel:
             return imgs
         return imgs[:, start_pad_dim1:-end_pad_dim1, start_pad_dim2:-end_pad_dim2]
+    
+    def pad_imgs(self, imgs):
+        self.check_padding_type(self.padding)
+        if self.padding == "same":
+            return self.pad_img_same(imgs)
 
     def convolve(self, slice, kernel, bias):
         return np.sum(slice * kernel) + bias
@@ -135,13 +140,10 @@ class Conv2d(BaseLayer):
     def forward(self, input_tensor: np.array):  # input shape BATCHxCHANNELSxHIGHTxWIDTH
         self.input_tensor = input_tensor
         (self.batch_size, _, input_size_dim1, input_size_dim2) = input_tensor.shape
-        # TODO: TMP only padding to same
-        self.input_tensor_padded = self.pad_img_same(
-            input_tensor, self.pad_size_dim1, self.pad_size_dim2)
+        self.input_tensor_padded = self.pad_imgs(input_tensor)
 
         self.forward_output_shape = self.get_output_shape_for_img(
             input_size_dim1, input_size_dim2)
-        _logger.debug(f"output shape {self.forward_output_shape}")
         (_, _, output_dim1, output_dim2) = self.forward_output_shape
         self.forward_output = np.zeros(self.forward_output_shape)
 
