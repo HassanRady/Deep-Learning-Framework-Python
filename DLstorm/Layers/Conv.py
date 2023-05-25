@@ -113,7 +113,6 @@ class Conv2d(BaseLayer):
         return np.sum(slice * kernel) + bias
 
     def get_output_shape_for_img(self, input_size_dim1, input_size_dim2):
-
         output_dim1 = self.get_shape_after_conv(
             input_size_dim1, self.kernel_size_dim1, self.pad_size_dim1, self.stride_size_dim1)
         output_dim2 = self.get_shape_after_conv(
@@ -134,11 +133,13 @@ class Conv2d(BaseLayer):
     def forward(self, input_tensor: np.array):  # input shape BATCHxCHANNELSxHIGHTxWIDTH
         self.input_tensor = input_tensor
         (self.batch_size, _, input_size_dim1, input_size_dim2) = input_tensor.shape
+        # TODO: TMP only padding to same
         self.input_tensor_padded = self.pad_img_same(
             input_tensor, self.pad_size_dim1, self.pad_size_dim2)
 
         self.forward_output_shape = self.get_output_shape_for_img(
             input_size_dim1, input_size_dim2)
+        _logger.debug(f"output shape {self.forward_output_shape}")
         (_, _, output_dim1, output_dim2) = self.forward_output_shape
         self.forward_output = np.zeros(self.forward_output_shape)
 
