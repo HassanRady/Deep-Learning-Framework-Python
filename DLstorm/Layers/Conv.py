@@ -1,3 +1,5 @@
+# TODO: padding type
+
 from DLstorm.logger import get_file_logger
 from DLstorm.Layers.Initializers import He, Constant
 from DLstorm.Layers.Base import BaseLayer
