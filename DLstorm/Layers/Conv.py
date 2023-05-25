@@ -131,9 +131,9 @@ class Conv2d(BaseLayer):
         for i in range(output_dim1):
             for j in range(output_dim2):
                 start_dim1 = i * self.stride_size_dim1
-                end_dim1 = i * self.stride_size_dim1 + self.kernel_size_dim1
+                end_dim1 = start_dim1 + self.kernel_size_dim1
                 start_dim2 = j * self.stride_size_dim2
-                end_dim2 = j * self.stride_size_dim2 + self.kernel_size_dim2
+                end_dim2 = start_dim2 + self.kernel_size_dim2
                 slice = image[:, start_dim1:end_dim1, start_dim2:end_dim2]
                 yield slice, i, j
 
