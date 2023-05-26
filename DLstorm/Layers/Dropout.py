@@ -1,3 +1,5 @@
+# TODO: handle testing phase
+
 import numpy as np
 from DLstorm.Layers.Base import BaseLayer
 
