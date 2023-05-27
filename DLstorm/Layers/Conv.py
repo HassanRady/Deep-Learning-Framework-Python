@@ -63,7 +63,7 @@ class Conv2d(BaseLayer):
             self.pad_size_dim1 = (padding, padding)
             self.pad_size_dim2 = (padding, padding)
 
-    def initialize(self, x=None, y=None):
+    def initialize(self):
         self.weights = self.weights_initializer.initialize(self.weight_shape, self.in_channels * self.kernel_size_dim1 * self.kernel_size_dim2,
                                                            self.kernel_size_dim1 * self.kernel_size_dim2 * self.out_channels)
         self.bias = self.bias_initializer.initialize(
@@ -169,8 +169,8 @@ class Conv2d(BaseLayer):
         for n in range(self.batch_size):
             one_sample_padded = self.input_tensor_padded[n]
 
-            for slice, i, j in self.generate_slice(one_sample_padded, output_dim1, output_dim2):
-                for out_channel in range(self.out_channels):
+            for out_channel in range(self.out_channels):
+                for slice, i, j in self.generate_slice(one_sample_padded, output_dim1, output_dim2):
                     start_dim1 = i * self.stride_size_dim1
                     end_dim1 = i * self.stride_size_dim1 + self.kernel_size_dim1
                     start_dim2 = j * self.stride_size_dim2
