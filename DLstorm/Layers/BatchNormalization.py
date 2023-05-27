@@ -17,16 +17,17 @@ class BatchNorm2d(BaseLayer):
     def __init__(self, num_features, eps=1e-11, momentum=0.8):
         super().__init__()
         self.trainable = True
+        self._optimizer = None
 
         self.num_features = num_features
         self.eps = eps
         self.momentum = momentum
 
-        self.gamma = np.ones(num_features)
-        self.beta = np.zeros(num_features)
+        self.gamma = np.ones((1, num_features, 1, 1))
+        self.beta = np.zeros((1, num_features, 1, 1))
 
-        self.mean = np.zeros(self.num_features)
-        self.variance = np.ones(self.num_features)
+        self.mean = np.zeros((1, num_features, 1, 1))
+        self.variance = np.ones((1, num_features, 1, 1))
 
         self.test_phase = False
         self.input_tensor = None
@@ -67,8 +68,9 @@ class BatchNorm2d(BaseLayer):
                                                                            self.input_tensor.shape[3])
 
     def normalize_train(self, tensor):
-        self.batch_mean = np.mean(tensor, axis=0)
-        self.batch_variance = np.var(tensor, axis=0)
+        self.batch_mean = np.mean(tensor, axis=(0, 2, 3), keepdims=True)
+        self.batch_variance = np.var(tensor, axis=(0, 2, 3), keepdims=True)
+
         self.batch_std = np.sqrt(self.batch_variance + self.eps)
 
         self.input_tensor_normalized = (
@@ -96,19 +98,25 @@ class BatchNorm2d(BaseLayer):
         self.input_tensor = input_tensor
         self.batch_size = input_tensor.shape[0]
 
-        input_tensor_reshaped = self.reshape_tensor_for_input(input_tensor)
+        # input_tensor_reshaped = self.reshape_tensor_for_input(input_tensor)
+        input_tensor_reshaped = input_tensor
 
         if not self.test_phase:
             self.input_normalized = self.normalize_train(input_tensor_reshaped)
         else:
             self.input_normalized = self.normalize_test(input_tensor_reshaped)
 
-        self.forward_output_reshaped = self.reshape_tensor_for_output(
-            self.input_normalized)
+        # self.forward_output_reshaped = self.reshape_tensor_for_output(self.input_normalized)
+        self.forward_output_reshaped = self.input_normalized
+
+        # TODO: remove tmp
+        self.weights = self.gamma
+        self.bias = self.beta
+
         return self.forward_output_reshaped
 
     def backward(self, error_tensor):
-        error_tensor = self.reshape_tensor_for_input(error_tensor)
+        # error_tensor = self.reshape_tensor_for_input(error_tensor)
 
         gradient_gamma = np.sum(
             error_tensor * self.input_tensor_normalized, axis=0)
@@ -119,13 +127,17 @@ class BatchNorm2d(BaseLayer):
                                                                                        gradient_input_normalized.sum(axis=0) -
                                                                                        self.input_tensor_normalized * np.sum(gradient_input_normalized * self.input_tensor_normalized, axis=0))
 
-        if self.optimizer:
+        if self.optimizer is not None:
             self.gamma = self.optimizer.calculate_update(
                 self.gamma, gradient_gamma)
             self.beta = self.optimizer.calculate_update(
                 self.beta, gradient_beta)
 
-        der_input_tensor = self.reshape_tensor_for_output(der_input_tensor)
+        # der_input_tensor = self.reshape_tensor_for_output(der_input_tensor)
+        
+        # TODO: remove tmp
+        self._gradient_weights = gradient_gamma
+        self._gradient_bias = gradient_beta
         return der_input_tensor
 
 
