@@ -63,7 +63,7 @@ class Conv2d(BaseLayer):
             self.pad_size_dim1 = (padding, padding)
             self.pad_size_dim2 = (padding, padding)
 
-    def initialize(self, x=None, y=None):
+    def initialize(self):
         self.weights = self.weights_initializer.initialize(self.weight_shape, self.in_channels * self.kernel_size_dim1 * self.kernel_size_dim2,
                                                            self.kernel_size_dim1 * self.kernel_size_dim2 * self.out_channels)
         self.bias = self.bias_initializer.initialize(
@@ -163,18 +163,18 @@ class Conv2d(BaseLayer):
 
         output = np.zeros_like(self.input_tensor)
         gradient_input = np.zeros_like(self.input_tensor_padded)
-        self._gradient_bias = np.zeros((self.out_channels, 1, 1, 1))
+        self._gradient_bias = np.zeros((self.out_channels, 1, ))
         self._gradient_weights = np.zeros_like(self.weights)
 
         for n in range(self.batch_size):
             one_sample_padded = self.input_tensor_padded[n]
 
-            for slice, i, j in self.generate_slice(one_sample_padded, output_dim1, output_dim2):
-                for out_channel in range(self.out_channels):
+            for out_channel in range(self.out_channels):
+                for slice, i, j in self.generate_slice(one_sample_padded, output_dim1, output_dim2):
                     start_dim1 = i * self.stride_size_dim1
-                    end_dim1 = i * self.stride_size_dim1 + self.kernel_size_dim1
+                    end_dim1 = start_dim1 + self.kernel_size_dim1
                     start_dim2 = j * self.stride_size_dim2
-                    end_dim2 = j * self.stride_size_dim2 + self.kernel_size_dim2
+                    end_dim2 = start_dim2 + self.kernel_size_dim2
 
                     self._gradient_weights[out_channel] += slice * \
                         error_tensor[n, out_channel, i, j]
@@ -188,6 +188,7 @@ class Conv2d(BaseLayer):
         if self.optimizer:
             self.weights = self.optimizer.calculate_update(
                 self.weights, self.gradient_weights)
+            # self.bias = self.optimizer.calculate_update(self.bias, self._gradient_bias)
 
         return output
 
