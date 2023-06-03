@@ -30,7 +30,7 @@ def get_socket_handler():
     return socket_handler
 
 
-def get_file_logger(logger_name, file_name):
+def get_file_logger(logger_name, file_name="logs"):
 
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)

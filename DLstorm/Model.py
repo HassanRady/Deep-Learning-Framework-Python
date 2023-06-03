@@ -4,7 +4,7 @@ from DLstorm.logger import get_file_logger
 
 import numpy as np
 
-_logger = get_file_logger(__name__, 'debug')
+_logger = get_file_logger(__name__, 'logs')
 
 
 class Model(object):
@@ -27,6 +27,7 @@ class Model(object):
         return loss, output
 
     def train_epoch(self):
+        _logger.info(f"Training")
         running_preds = []
         running_loss = 0.0
         for x_batch, y_batch in self.batcher(self.x_train, self.y_train):
@@ -51,6 +52,7 @@ class Model(object):
         return epoch_loss, running_preds
 
     def eval_epoch(self):
+        _logger.info(f"Validation")
         running_preds = []
         running_loss = 0.0
         for x_batch, y_batch in self.batcher(self.x_val, self.y_val):
@@ -99,6 +101,7 @@ class Model(object):
 
         for i in range(1, epochs + 1):
             print(f"Epoch {i}: ")
+            _logger.info(f"Epoch: {i}")
 
             train_loss, train_pred = self.train_epoch()
             val_loss, val_pred = self.eval_epoch()
