@@ -28,6 +28,10 @@ class Model(object):
 
     def train_epoch(self):
         _logger.info(f"Training")
+
+        for layer in self.model:
+            layer.train()
+
         running_preds = []
         running_loss = 0.0
         for x_batch, y_batch in self.batcher(self.x_train, self.y_train):
@@ -53,6 +57,10 @@ class Model(object):
 
     def eval_epoch(self):
         _logger.info(f"Validation")
+
+        # for layer in self.model:
+        #     layer.eval()
+
         running_preds = []
         running_loss = 0.0
         for x_batch, y_batch in self.batcher(self.x_val, self.y_val):
