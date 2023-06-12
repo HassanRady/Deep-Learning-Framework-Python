@@ -58,8 +58,8 @@ class Model(object):
     def eval_epoch(self):
         _logger.info(f"Validation")
 
-        # for layer in self.model:
-        #     layer.eval()
+        for layer in self.model:
+            layer.eval()
 
         running_preds = []
         running_loss = 0.0
@@ -128,6 +128,45 @@ class Model(object):
 
         return self.fit_output
 
+
+    def append_layer(self, layer: BaseLayer):
+        if isinstance(layer, BaseLayer):
+            self.model.append(layer)
+
+    def compile(self, optimizer, loss, batch_size, metrics: list):
+        self.batch_size = batch_size
+        self.loss = loss
+        self.set_optimizer(optimizer)
+        self.metrics = metrics
+
+    def calc_metrics(self, preds, labels):
+        self.metrics_output = {}
+        for metric in self.metrics:
+            if metric == "accuracy":
+                self.metrics_output['accuracy'] = self.calc_accuracy(
+                    preds, labels)
+
+    def calc_accuracy(self, preds, labels):
+        preds = np.argmax(preds, axis=1)
+        labels = np.argmax(labels, axis=1)
+        accuracy = np.mean(preds == labels)
+        return accuracy
+
+    def set_optimizer(self, optimizer):
+        for layer in self.model:
+            if layer.trainable:
+                layer.optimizer = copy.deepcopy(optimizer)
+
+    def forward(self, x):
+        for layer in self.model:
+            x = layer.forward(x)
+        return x
+
+    def backward(self, y):
+        y = self.loss.backward(y)
+        for layer in reversed(self.model):
+            y = layer.backward(y)
+    
     def train(self, x, y, epochs):
         self.x_train = x
         self.y_train = y
@@ -165,43 +204,3 @@ class Model(object):
         self.fit_output['val_loss'] = val_losses
         self.fit_output['val_preds'] = val_preds
         return self.fit_output
-
-    def append_layer(self, layer: BaseLayer):
-        if isinstance(layer, BaseLayer):
-            self.model.append(layer)
-
-    def compile(self, optimizer, loss, batch_size, metrics: list):
-        self.batch_size = batch_size
-        self.loss = loss
-        self.set_optimizer(optimizer)
-        self.metrics = metrics
-
-    def calc_metrics(self, preds, labels):
-        self.metrics_output = {}
-        for metric in self.metrics:
-            if metric == "accuracy":
-                self.metrics_output['accuracy'] = self.calc_accuracy(
-                    preds, labels)
-
-    def calc_accuracy(self, preds, labels):
-        preds = np.argmax(preds, axis=1)
-        labels = np.argmax(labels, axis=1)
-        accuracy = np.mean(preds == labels)
-        return accuracy
-
-    def set_optimizer(self, optimizer):
-        for layer in self.model:
-            if layer.trainable:
-                layer.optimizer = copy.deepcopy(optimizer)
-
-    def forward(self, x):
-        for layer in self.model:
-            output = layer.forward(x)
-            x = output
-        return output
-
-    def backward(self, y):
-        y = self.loss.backward(y)
-        for layer in reversed(self.model):
-            output = layer.backward(y)
-            y = output
