@@ -1,15 +1,15 @@
-from DLstorm.Model import Model
-from DLstorm.Layers.Initializers import Xavier, He, UniformRandom, Constant
-from DLstorm.Layers.Conv import Conv2d
-from DLstorm.Layers.BatchNormalization import BatchNorm2d
-from DLstorm.Layers.Pooling import MaxPool2d
-from DLstorm.Layers.Flatten import Flatten
-from DLstorm.Layers.Dropout import Dropout
-from DLstorm.Layers.FullyConnected import Linear
-from DLstorm.Layers.ReLU import ReLU
-from DLstorm.Layers.SoftMax import SoftMax
-from DLstorm.Optimization.Loss import CrossEntropyLoss
-from DLstorm.Optimization.Optimizers import Adam, SgdWithMomentum, Sgd
+from DeepStorm.Model import Model
+from DeepStorm.Layers.Initializers import Xavier, He, UniformRandom, Constant
+from DeepStorm.Layers.Conv import Conv2d
+from DeepStorm.Layers.BatchNormalization import BatchNorm2d
+from DeepStorm.Layers.Pooling import MaxPool2d
+from DeepStorm.Layers.Flatten import Flatten
+from DeepStorm.Layers.Dropout import Dropout
+from DeepStorm.Layers.FullyConnected import Linear
+from DeepStorm.Layers.ReLU import ReLU
+from DeepStorm.Layers.SoftMax import SoftMax
+from DeepStorm.Optimization.Loss import CrossEntropyLoss
+from DeepStorm.Optimization.Optimizers import Adam, SgdWithMomentum, Sgd
 
 import numpy as np
 import pandas as pd

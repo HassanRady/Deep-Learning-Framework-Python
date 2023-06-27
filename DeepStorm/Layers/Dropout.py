@@ -1,7 +1,7 @@
 # TODO: handle testing phase
 
 import numpy as np
-from DLstorm.Layers.Base import BaseLayer
+from DeepStorm.Layers.Base import BaseLayer
 
 
 class Dropout(BaseLayer):

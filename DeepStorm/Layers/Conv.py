@@ -1,8 +1,8 @@
 # TODO: padding type
 
-from DLstorm.logger import get_file_logger
-from DLstorm.Layers.Initializers import He, Constant
-from DLstorm.Layers.Base import BaseLayer
+from DeepStorm.logger import get_file_logger
+from DeepStorm.Layers.Initializers import He, Constant
+from DeepStorm.Layers.Base import BaseLayer
 import numpy as np
 import os
 import sys

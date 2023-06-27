@@ -1,6 +1,6 @@
 import unittest
-from DLstorm.Layers import *
-from DLstorm.Optimization import *
+from DeepStorm.Layers import *
+from DeepStorm.Optimization import *
 import numpy as np
 from scipy import stats
 from scipy.ndimage.filters import gaussian_filter

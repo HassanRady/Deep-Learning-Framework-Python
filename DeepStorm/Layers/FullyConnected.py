@@ -1,8 +1,8 @@
-from DLstorm.Layers.Base import BaseLayer
-from DLstorm.Layers.Initializers import He, Constant
+from DeepStorm.Layers.Base import BaseLayer
+from DeepStorm.Layers.Initializers import He, Constant
 import numpy as np
 
-from DLstorm.logger import get_file_logger
+from DeepStorm.logger import get_file_logger
 _logger = get_file_logger(__name__, 'debug')
 
 

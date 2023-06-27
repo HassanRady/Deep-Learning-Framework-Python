@@ -1,4 +1,4 @@
-from DLstorm.Layers.Base import BaseLayer
+from DeepStorm.Layers.Base import BaseLayer
 import numpy as np
 
 

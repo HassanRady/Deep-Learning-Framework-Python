@@ -9,8 +9,8 @@ recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
 
 include requirements.txt
 include NeuralNetworkTests.py
-include DLstorm/VERSION
-include DLstorm/*
+include DeepStorm/VERSION
+include DeepStorm/*
 
 
 

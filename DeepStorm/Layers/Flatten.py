@@ -1,5 +1,5 @@
 import numpy as np
-from DLstorm.Layers.Base import BaseLayer
+from DeepStorm.Layers.Base import BaseLayer
 
 class Flatten(BaseLayer):
     def __init__(self) -> None:

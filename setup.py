@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 # Package meta-data.
-NAME = 'DLstorm'
+NAME = 'DeepStorm'
 DESCRIPTION = "Deep Learning framework from scratch"
 URL = 'https://github.com/HassanRady/' + NAME
 EMAIL = 'hassan.khaled.rady@gmail.com'

@@ -1,4 +1,4 @@
-from DLstorm.logger import get_file_logger
+from DeepStorm.logger import get_file_logger
 import numpy as np
 import os
 import sys

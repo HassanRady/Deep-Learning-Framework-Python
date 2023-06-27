@@ -1,6 +1,6 @@
-from DLstorm.logger import get_file_logger
+from DeepStorm.logger import get_file_logger
 import numpy as np
-from DLstorm.Layers.Base import BaseLayer
+from DeepStorm.Layers.Base import BaseLayer
 import os
 import sys
 import inspect

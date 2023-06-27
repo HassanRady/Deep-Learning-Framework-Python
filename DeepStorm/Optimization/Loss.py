@@ -2,9 +2,9 @@ import numpy as np
 from Layers.Base import BaseLayer
 
 
-class CrossEntropyLoss(BaseLayer):
+class CrossEntropyLoss:
     def __init__(self):
-        super().__init__()
+        # super().__init__()
         self.trainable = False
 
     def forward(self, y_hat, y):
