@@ -1,5 +1,3 @@
-# TODO: handle testing phase
-
 import numpy as np
 from DeepStorm.Layers.Base import BaseLayer
 
@@ -12,7 +10,7 @@ class Dropout(BaseLayer):
         self.testing_phase = False
 
     def forward(self, input_tensor):
-        if self.testing_phase == True:
+        if not self.training:
             return input_tensor
 
         self.mask = np.random.rand(
