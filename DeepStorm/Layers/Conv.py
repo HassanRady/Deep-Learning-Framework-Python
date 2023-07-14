@@ -188,6 +188,7 @@ class Conv2d(BaseLayer):
         if self.optimizer:
             self.weights = self.optimizer.calculate_update(
                 self.weights, self.gradient_weights)
+            # Common mistake: pruning the bias usually harms model accuracy too much. (https://www.tensorflow.org/model_optimization/guide/pruning/comprehensive_guide#:~:text=Common%20mistake%3A%20pruning%20the%20bias%20usually%20harms%20model%20accuracy%20too%20much.)
 
         return output
 
