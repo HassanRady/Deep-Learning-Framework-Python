@@ -107,7 +107,7 @@ class BatchNorm2d(BaseLayer):
 
 
 if __name__ == "__main__":
-    import NeuralNetworkTests
+    import tests.NeuralNetworkTests as NeuralNetworkTests
 
     NeuralNetworkTests.TestBatchNorm().setUp()
     NeuralNetworkTests.TestBatchNorm()

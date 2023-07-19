@@ -194,7 +194,7 @@ class Conv2d(BaseLayer):
 
 if __name__ == "__main__":
 
-    from NeuralNetworkTests import TestConv
+    from tests.NeuralNetworkTests import TestConv
 
     tests = TestConv()
     tests.setUp()
