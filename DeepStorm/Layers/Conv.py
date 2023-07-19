@@ -172,9 +172,9 @@ class Conv2d(BaseLayer):
             for out_channel in range(self.out_channels):
                 for slice, i, j in self.generate_slice(one_sample_padded, output_dim1, output_dim2):
                     start_dim1 = i * self.stride_size_dim1
-                    end_dim1 = i * self.stride_size_dim1 + self.kernel_size_dim1
+                    end_dim1 = start_dim1 + self.kernel_size_dim1
                     start_dim2 = j * self.stride_size_dim2
-                    end_dim2 = j * self.stride_size_dim2 + self.kernel_size_dim2
+                    end_dim2 = start_dim2 + self.kernel_size_dim2
 
                     self._gradient_weights[out_channel] += slice * \
                         error_tensor[n, out_channel, i, j]
@@ -189,7 +189,6 @@ class Conv2d(BaseLayer):
             self.weights = self.optimizer.calculate_update(
                 self.weights, self.gradient_weights)
             # Common mistake: pruning the bias usually harms model accuracy too much. (https://www.tensorflow.org/model_optimization/guide/pruning/comprehensive_guide#:~:text=Common%20mistake%3A%20pruning%20the%20bias%20usually%20harms%20model%20accuracy%20too%20much.)
-
         return output
 
 
