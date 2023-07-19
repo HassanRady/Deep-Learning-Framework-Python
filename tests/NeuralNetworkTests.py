@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.getcwd())
+
 import unittest
 from DeepStorm.Layers import *
 from DeepStorm.Optimization import *
@@ -6,7 +10,6 @@ from scipy import stats
 from scipy.ndimage.filters import gaussian_filter
 import NeuralNetwork
 import matplotlib.pyplot as plt
-import os
 import tabulate
 import argparse
 
