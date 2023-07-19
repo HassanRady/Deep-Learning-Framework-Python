@@ -19,7 +19,7 @@ class Linear(BaseLayer):
 
         self.gradient_weights = None
 
-        self.weights = np.random.rand(in_features+1, out_features)
+        self.weights = np.zeros((in_features+1, out_features))
         self.weights_initializer = weights_initializer
         self.bias_initializer = bias_initializer
 
@@ -29,7 +29,7 @@ class Linear(BaseLayer):
         self.weights[:-1] = self.weights_initializer.initialize(
             (self.input_size, self.output_size), self.input_size, self.output_size)
         self.weights[-1:] = self.bias_initializer.initialize(
-            (self.input_size, self.output_size), 1, self.output_size)
+            fan_in=1, fan_out=self.output_size)
 
     @property
     def optimizer(self):
@@ -41,7 +41,6 @@ class Linear(BaseLayer):
 
     def forward(self, X):  # X is BATCHxFEATURES
         self.N = X.shape[0]
-
         self.input = np.concatenate((X, np.ones((self.N, 1))), axis=1)
 
         self.output = self.input.dot(self.weights)
