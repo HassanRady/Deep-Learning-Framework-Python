@@ -28,6 +28,7 @@ class BatchNorm2d(BaseLayer):
         self.mean = np.zeros(self.num_features, dtype=np.float64)
         self.variance = np.ones(self.num_features)
 
+        self.optimizer = None
     @property
     def optimizer(self):
         return self._optimizer
@@ -87,7 +88,6 @@ class BatchNorm2d(BaseLayer):
         return self.input_normalized
 
     def backward(self, error_tensor):
-
         gradient_weight = np.sum(
             error_tensor * self.input_tensor_normalized, axis=(0, 2, 3))
         gradient_bias = error_tensor.sum(axis=(0, 2, 3))
