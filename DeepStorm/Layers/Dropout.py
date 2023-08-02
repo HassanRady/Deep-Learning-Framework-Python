@@ -7,7 +7,7 @@ class Dropout(BaseLayer):
         super().__init__()
         self.p = probability
         self.trainable = False
-        self.testing_phase = False
+        self.training = True
 
     def forward(self, input_tensor):
         if not self.training:
