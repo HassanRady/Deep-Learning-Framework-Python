@@ -22,7 +22,6 @@ class SoftMax(BaseLayer):
 
         tmp = np.apply_along_axis(
             self.expand_softmax_values, axis=1, arr=self.softmax_value)  # NXMXM
-
         softmax_gradient = tmp * \
             (np.eye(tmp.shape[1]) - tmp.transpose(0, 2, 1))  # NXMXM
 
