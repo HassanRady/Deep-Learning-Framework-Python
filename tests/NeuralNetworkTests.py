@@ -728,9 +728,9 @@ class TestConv2d(unittest.TestCase):
         input_tensor = np.random.uniform(-1, 1,
                                          (self.batch_size, *self.input_shape))
         conv = Conv.Conv2d(in_channels=self.in_channels, out_channels=self.num_kernels,
-                           kernel_size=self.kernel_shape, stride=(3, 2), padding='same')
+                           kernel_size=self.kernel_shape, stride=(3, 2), padding='same', Initializers.He(), Initializers.Constant(0.1))
         conv.optimizer = Optimizers.Sgd(1)
-        conv.initialize(Initializers.He(), Initializers.Constant(0.1))
+        conv.initialize()
         # conv.weights = np.random.rand(4, 3, 5, 8)
         # conv.bias = 0.1 * np.ones(4)
         for _ in range(10):
@@ -903,7 +903,7 @@ class TestBatchNorm2d(unittest.TestCase):
     def test_default_phase(self):
         layer = BatchNormalization.BatchNorm2d(
             self.input_tensor.shape[-1])
-        self.assertFalse(layer.test_phase)
+        self.assertFalse(layer.training)
 
     def _test_forward_linear_shape(self):
         layer = BatchNormalization.BatchNorm2d(
@@ -1114,7 +1114,7 @@ class TestDropout(unittest.TestCase):
 
     def test_forward_testTime(self):
         drop_layer = Dropout.Dropout(0.5)
-        drop_layer.testing_phase = True
+        drop_layer.training = True
         output = drop_layer.forward(self.input_tensor)
 
         self.assertEqual(np.max(output), 1.)
@@ -1136,9 +1136,7 @@ class TestDropout(unittest.TestCase):
         label_tensor = np.zeros([batch_size, input_size])
         for i in range(batch_size):
             label_tensor[i, np.random.randint(0, input_size)] = 1
-        layers = list()
-        layers.append(Dropout.Dropout(0.5))
-        layers.append(L2Loss())
+        layers = [Dropout.Dropout(0.5), L2Loss()]
         difference = Helpers.gradient_check(
             layers, input_tensor, label_tensor, seed=1337)
         self.assertLessEqual(np.sum(difference), 1e-5)
@@ -1317,7 +1315,7 @@ class TestNeuralNetwork(unittest.TestCase):
         input_size = 4
         net.data_layer = Helpers.IrisData(50)
         net.loss_layer = Loss.CrossEntropyLoss()
-        net.append_layer(BatchNormalization.BatchNormalization(input_size))
+        net.append_layer(BatchNormalization.BatchNorm2d(input_size))
         fcl_1 = FullyConnected.Linear(input_size, categories, Initializers.UniformRandom())
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
@@ -1393,7 +1391,7 @@ class TestNeuralNetwork(unittest.TestCase):
         input_size = 4
         net.data_layer = Helpers.IrisData(50)
         net.loss_layer = Loss.CrossEntropyLoss()
-        net.append_layer(BatchNormalization.BatchNormalization(input_size))
+        net.append_layer(BatchNormalization.BatchNorm2d(input_size))
         fcl_1 = FullyConnected.Linear(input_size, categories)
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
