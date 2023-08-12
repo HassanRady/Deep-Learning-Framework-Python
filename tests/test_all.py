@@ -1,7 +1,7 @@
 import unittest
-from DeepStorm.Model import Model
+from DeepStorm.model import Model
 from DeepStorm.Layers import *
-from DeepStorm.Optimization import *
+from DeepStorm.Optimizers import *
 import numpy as np
 from scipy import stats
 from scipy.ndimage.filters import gaussian_filter
@@ -39,19 +39,19 @@ class TestLinear(unittest.TestCase):
             return weights
 
     def test_trainable(self):
-        layer = FullyConnected.Linear(
+        layer = Linear.Linear(
             self.input_size, self.output_size)
         self.assertTrue(layer.trainable)
 
     def test_forward_size(self):
-        layer = FullyConnected.Linear(
+        layer = Linear.Linear(
             self.input_size, self.output_size)
         output_tensor = layer.forward(self.input_tensor)
         self.assertEqual(output_tensor.shape[1], self.output_size)
         self.assertEqual(output_tensor.shape[0], self.batch_size)
 
     def test_backward_size(self):
-        layer = FullyConnected.Linear(
+        layer = Linear.Linear(
             self.input_size, self.output_size)
         output_tensor = layer.forward(self.input_tensor)
         error_tensor = layer.backward(output_tensor)
@@ -59,7 +59,7 @@ class TestLinear(unittest.TestCase):
         self.assertEqual(error_tensor.shape[0], self.batch_size)
 
     def test_update(self):
-        layer = FullyConnected.Linear(
+        layer = Linear.Linear(
             self.input_size, self.output_size)
         layer.optimizer = Optimizers.Sgd(1)
         for _ in range(10):
@@ -73,7 +73,7 @@ class TestLinear(unittest.TestCase):
 
     def test_update_bias(self):
         input_tensor = np.zeros([self.batch_size, self.input_size])
-        layer = FullyConnected.Linear(
+        layer = Linear.Linear(
             self.input_size, self.output_size)
         layer.optimizer = Optimizers.Sgd(1)
         for _ in range(10):
@@ -89,7 +89,7 @@ class TestLinear(unittest.TestCase):
         input_tensor = np.abs(np.random.random(
             (self.batch_size, self.input_size)))
         layers = list()
-        layers.append(FullyConnected.Linear(
+        layers.append(Linear.Linear(
             self.input_size, self.categories))
         layers.append(L2Loss())
         difference = Helpers.gradient_check(
@@ -100,7 +100,7 @@ class TestLinear(unittest.TestCase):
         input_tensor = np.abs(np.random.random(
             (self.batch_size, self.input_size)))
         layers = list()
-        layers.append(FullyConnected.Linear(
+        layers.append(Linear.Linear(
             self.input_size, self.categories))
         layers.append(L2Loss())
         difference = Helpers.gradient_check_weights(
@@ -109,14 +109,14 @@ class TestLinear(unittest.TestCase):
 
     def test_bias(self):
         input_tensor = np.zeros((1, 100000))
-        layer = FullyConnected.Linear(100000, 1)
+        layer = Linear.Linear(100000, 1)
         result = layer.forward(input_tensor)
         self.assertGreater(np.sum(result), 0)
 
     def test_initialization(self):
         input_size = 4
         categories = 10
-        layer = FullyConnected.Linear(input_size, categories, TestLinear.TestInitializer(), Initializers.Constant(0.5))
+        layer = Linear.Linear(input_size, categories, TestLinear.TestInitializer(), Initializers.Constant(0.5))
         init = TestLinear.TestInitializer()
         # self.assertEqual(layer.weights_initializer, input_size)
         # self.assertEqual(init.fan_out, categories)
@@ -876,7 +876,7 @@ class TestBatchNorm2d(unittest.TestCase):
         self.layers = list()
         self.layers.append(None)
         self.layers.append(Flatten.Flatten())
-        self.layers.append(FullyConnected.Linear(
+        self.layers.append(Linear.Linear(
             self.input_size, self.categories))
         self.layers.append(L2Loss())
 
@@ -1147,9 +1147,9 @@ class TestModel(unittest.TestCase):
 
     def test_append_layer(self):
         net = Model()
-        fcl_1 = FullyConnected.Linear(1, 1, weights_initializer=Initializers.Constant(0.123))
+        fcl_1 = Linear.Linear(1, 1, weights_initializer=Initializers.Constant(0.123))
         net.append_layer(fcl_1)
-        fcl_2 = FullyConnected.Linear(1, 1, weights_initializer=Initializers.Constant(0.23))
+        fcl_2 = Linear.Linear(1, 1, weights_initializer=Initializers.Constant(0.23))
         net.append_layer(fcl_2)
 
         net.compile(Optimizers.Sgd(1e-4), Loss.MSE())
@@ -1166,10 +1166,10 @@ class TestModel(unittest.TestCase):
         input_size = 4
         net.data_layer = Helpers.IrisData(50)
         net.loss_layer = Loss.CrossEntropyLoss()
-        fcl_1 = FullyConnected.Linear(input_size, categories, weights_initializer=Initializers.UniformRandom())
+        fcl_1 = Linear.Linear(input_size, categories, weights_initializer=Initializers.UniformRandom())
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.Linear(categories, categories, Initializers.UniformRandom())
+        fcl_2 = Linear.Linear(categories, categories, Initializers.UniformRandom())
         net.append_layer(fcl_2)
         net.append_layer(SoftMax.SoftMax())
 
@@ -1186,10 +1186,10 @@ class TestModel(unittest.TestCase):
         input_size = 4
         net.data_layer = Helpers.IrisData(100)
         net.loss_layer = Loss.CrossEntropyLoss()
-        fcl_1 = FullyConnected.Linear(input_size, categories, Initializers.UniformRandom())
+        fcl_1 = Linear.Linear(input_size, categories, Initializers.UniformRandom())
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.Linear(categories, categories,Initializers.UniformRandom() )
+        fcl_2 = Linear.Linear(categories, categories,Initializers.UniformRandom() )
         net.append_layer(fcl_2)
         net.append_layer(SoftMax.SoftMax())
 
@@ -1217,7 +1217,7 @@ class TestModel(unittest.TestCase):
         NeuralNetwork class
         '''
         import random
-        fcl = FullyConnected.FullyConnected(4, 3)
+        fcl = Linear.FullyConnected(4, 3)
         rnn = RNN.RNN(4, 4, 3)
 
         for layer in [fcl, rnn]:
@@ -1246,10 +1246,10 @@ class TestModel(unittest.TestCase):
         input_size = 4
         net.data_layer = Helpers.IrisData(100)
         net.loss_layer = Loss.CrossEntropyLoss()
-        fcl_1 = FullyConnected.Linear(input_size, categories, Initializers.UniformRandom())
+        fcl_1 = Linear.Linear(input_size, categories, Initializers.UniformRandom())
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.Linear(categories, categories, Initializers.UniformRandom())
+        fcl_2 = Linear.Linear(categories, categories, Initializers.UniformRandom())
         net.append_layer(fcl_2)
         net.append_layer(SoftMax.SoftMax())
 
@@ -1278,10 +1278,10 @@ class TestModel(unittest.TestCase):
         input_size = 4
         net.data_layer = Helpers.IrisData(100)
         net.loss_layer = Loss.CrossEntropyLoss()
-        fcl_1 = FullyConnected.Linear(input_size, categories, Initializers.UniformRandom())
+        fcl_1 = Linear.Linear(input_size, categories, Initializers.UniformRandom())
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.Linear(categories, categories, Initializers.UniformRandom())
+        fcl_2 = Linear.Linear(categories, categories, Initializers.UniformRandom())
         net.append_layer(fcl_2)
         net.append_layer(SoftMax.SoftMax())
 
@@ -1311,10 +1311,10 @@ class TestModel(unittest.TestCase):
         net.data_layer = Helpers.IrisData(50)
         net.loss_layer = Loss.CrossEntropyLoss()
         net.append_layer(BatchNormalization.BatchNorm2d(input_size))
-        fcl_1 = FullyConnected.Linear(input_size, categories, Initializers.UniformRandom())
+        fcl_1 = Linear.Linear(input_size, categories, Initializers.UniformRandom())
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.Linear(categories, categories,Initializers.UniformRandom() )
+        fcl_2 = Linear.Linear(categories, categories,Initializers.UniformRandom() )
         net.append_layer(fcl_2)
         net.append_layer(SoftMax.SoftMax())
 
@@ -1348,10 +1348,10 @@ class TestModel(unittest.TestCase):
         input_size = 4
         net.data_layer = Helpers.IrisData(50)
         net.loss_layer = Loss.CrossEntropyLoss()
-        fcl_1 = FullyConnected.Linear(input_size, categories)
+        fcl_1 = Linear.Linear(input_size, categories)
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.Linear(categories, categories)
+        fcl_2 = Linear.Linear(categories, categories)
         net.append_layer(fcl_2)
         net.append_layer(Dropout.Dropout(0.3))
         net.append_layer(SoftMax.SoftMax())
@@ -1387,10 +1387,10 @@ class TestModel(unittest.TestCase):
         net.data_layer = Helpers.IrisData(50)
         net.loss_layer = Loss.CrossEntropyLoss()
         net.append_layer(BatchNormalization.BatchNorm2d(input_size))
-        fcl_1 = FullyConnected.Linear(input_size, categories)
+        fcl_1 = Linear.Linear(input_size, categories)
         net.append_layer(fcl_1)
         net.append_layer(ReLU.ReLU())
-        fcl_2 = FullyConnected.Linear(categories, categories)
+        fcl_2 = Linear.Linear(categories, categories)
         net.append_layer(fcl_2)
         net.append_layer(Dropout.Dropout(0.3))
         net.append_layer(SoftMax.SoftMax())
@@ -1436,12 +1436,12 @@ class TestModel(unittest.TestCase):
 
         net.append_layer(Flatten.Flatten())
 
-        fcl_1 = FullyConnected.Linear(fcl_1_input_size, int(fcl_1_input_size/2.))
+        fcl_1 = Linear.Linear(fcl_1_input_size, int(fcl_1_input_size/2.))
         net.append_layer(fcl_1)
 
         net.append_layer(ReLU.ReLU())
 
-        fcl_2 = FullyConnected.Linear(int(fcl_1_input_size/2.), categories)
+        fcl_2 = Linear.Linear(int(fcl_1_input_size/2.), categories)
         net.append_layer(fcl_2)
 
         net.append_layer(SoftMax.SoftMax())
@@ -1523,7 +1523,7 @@ class TestModel(unittest.TestCase):
 
         net.append_layer(Flatten.Flatten())
 
-        fcl_1 = FullyConnected.Linear(
+        fcl_1 = Linear.Linear(
             fcl_1_input_size, int(fcl_1_input_size/2.))
         net.append_layer(fcl_1)
 
@@ -1532,13 +1532,13 @@ class TestModel(unittest.TestCase):
 
         net.append_layer(ReLU.ReLU())
 
-        fcl_2 = FullyConnected.Linear(
+        fcl_2 = Linear.Linear(
             int(fcl_1_input_size / 2), int(fcl_1_input_size / 3))
         net.append_layer(fcl_2)
 
         net.append_layer(ReLU.ReLU())
 
-        fcl_3 = FullyConnected.Linear(int(fcl_1_input_size / 3), categories)
+        fcl_3 = Linear.Linear(int(fcl_1_input_size / 3), categories)
         net.append_layer(fcl_3)
 
         net.append_layer(SoftMax.SoftMax())
