@@ -1,5 +1,5 @@
 from DeepStorm.model import Model
-from DeepStorm.Layers.Initializers import Xavier, He, UniformRandom, Constant
+from DeepStorm.Initializers.Initializers import Xavier, He, UniformRandom, Constant
 from DeepStorm.Layers.conv import Conv2d
 from DeepStorm.Layers.batchNormalization import BatchNorm2d
 from DeepStorm.Layers.pooling import MaxPool2d
@@ -9,8 +9,7 @@ from DeepStorm.Layers.linear import Linear
 from DeepStorm.Layers.ReLU import ReLU
 from DeepStorm.Layers.Sigmoid import Sigmoid
 from DeepStorm.Layers.SoftMax import SoftMax
-from DeepStorm.Losses.Loss import CrossEntropyLoss
-from DeepStorm.Optimizers.Optimizers import Adam, SgdWithMomentum, Sgd
+from DeepStorm.Losses.crossEntropy import CrossEntropyLoss
 
 import numpy as np
 import pandas as pd
