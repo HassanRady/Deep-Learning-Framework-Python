@@ -86,17 +86,18 @@ class Model(object):
         return epoch_loss, running_preds
 
     def batcher(self, x, y):
-        limit = len(x) - len(x)%self.batch_size
-        x = np.split(x[:limit], len(x)//self.batch_size)
-        y = np.split(y[:limit], len(y)//self.batch_size)
-        self.data_len = len(x)
-        yield from zip(x, y)
+        x_batches = np.split(x, len(x)//self.batch_size)
+        y_batches = np.split(y, len(y)//self.batch_size)
+        self.data_len = len(x_batches)
+        yield from zip(x_batches, y_batches)
 
     def fit(self, x_train, y_train, x_val, y_val, epochs):
-        self.x_train = x_train
-        self.y_train = y_train
-        self.x_val = x_val
-        self.y_val = y_val
+        limit = len(x_train) - len(x_train)%self.batch_size
+        self.x_train = x_train[:limit]
+        self.y_train = y_train[:limit]
+        limit = len(x_val) - len(x_val)%self.batch_size
+        self.x_val = x_val[:limit]
+        self.y_val = y_val[:limit]
 
         train_losses = []
         train_preds = []
