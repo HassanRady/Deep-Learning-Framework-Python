@@ -1,8 +1,5 @@
-import sys
-import os
-sys.path.append(os.getcwd())
-
 import unittest
+from DeepStorm.Model import Model
 from DeepStorm.Layers import *
 from DeepStorm.Optimization import *
 import numpy as np
@@ -1142,22 +1139,20 @@ class TestDropout(unittest.TestCase):
         self.assertLessEqual(np.sum(difference), 1e-5)
 
 
-class TestNeuralNetwork(unittest.TestCase):
+class TestModel(unittest.TestCase):
     plot = False
     directory = 'plots/'
     log = 'log.txt'
     iterations = 100
 
     def test_append_layer(self):
-        # this test checks if your network actually appends layers, whether it copies the optimizer to these layers, and
-        # whether it handles the initialization of the layer's weights
-        net = NeuralNetwork.NeuralNetwork(Optimizers.Sgd(1),
-                                          Initializers.Constant(0.123),
-                                          Initializers.Constant(0.123))
-        fcl_1 = FullyConnected.Linear(1, 1)
+        net = Model()
+        fcl_1 = FullyConnected.Linear(1, 1, weights_initializer=Initializers.Constant(0.123))
         net.append_layer(fcl_1)
-        fcl_2 = FullyConnected.Linear(1, 1)
+        fcl_2 = FullyConnected.Linear(1, 1, weights_initializer=Initializers.Constant(0.23))
         net.append_layer(fcl_2)
+
+        net.compile(Optimizers.Sgd(1e-4), Loss.MSE())
 
         self.assertEqual(len(net.layers), 2)
         self.assertFalse(net.layers[0].optimizer is net.layers[1].optimizer)
