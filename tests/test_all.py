@@ -728,7 +728,7 @@ class TestConv2d(unittest.TestCase):
         input_tensor = np.random.uniform(-1, 1,
                                          (self.batch_size, *self.input_shape))
         conv = Conv.Conv2d(in_channels=self.in_channels, out_channels=self.num_kernels,
-                           kernel_size=self.kernel_shape, stride=(3, 2), padding='same', Initializers.He(), Initializers.Constant(0.1))
+                           kernel_size=self.kernel_shape, stride=(3, 2), padding='same', weights_initializer=Initializers.He(), bias_initializer=Initializers.Constant(0.1))
         conv.optimizer = Optimizers.Sgd(1)
         conv.initialize()
         # conv.weights = np.random.rand(4, 3, 5, 8)
