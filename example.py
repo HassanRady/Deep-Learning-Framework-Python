@@ -1,16 +1,16 @@
-from DeepStorm.Model import Model
+from DeepStorm.model import Model
 from DeepStorm.Layers.Initializers import Xavier, He, UniformRandom, Constant
-from DeepStorm.Layers.Conv import Conv2d
-from DeepStorm.Layers.BatchNormalization import BatchNorm2d
-from DeepStorm.Layers.Pooling import MaxPool2d
-from DeepStorm.Layers.Flatten import Flatten
-from DeepStorm.Layers.Dropout import Dropout
-from DeepStorm.Layers.FullyConnected import Linear
+from DeepStorm.Layers.conv import Conv2d
+from DeepStorm.Layers.batchNormalization import BatchNorm2d
+from DeepStorm.Layers.pooling import MaxPool2d
+from DeepStorm.Layers.flatten import Flatten
+from DeepStorm.Layers.dropout import Dropout
+from DeepStorm.Layers.linear import Linear
 from DeepStorm.Layers.ReLU import ReLU
 from DeepStorm.Layers.Sigmoid import Sigmoid
 from DeepStorm.Layers.SoftMax import SoftMax
-from DeepStorm.Optimization.Loss import CrossEntropyLoss
-from DeepStorm.Optimization.Optimizers import Adam, SgdWithMomentum, Sgd
+from DeepStorm.Losses.Loss import CrossEntropyLoss
+from DeepStorm.Optimizers.Optimizers import Adam, SgdWithMomentum, Sgd
 
 import numpy as np
 import pandas as pd
