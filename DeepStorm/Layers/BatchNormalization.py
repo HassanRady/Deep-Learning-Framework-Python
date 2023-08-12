@@ -104,10 +104,3 @@ class BatchNorm2d(BaseLayer):
                 self.bias, gradient_bias)
 
         return der_input_tensor
-
-
-if __name__ == "__main__":
-    import tests.NeuralNetworkTests as NeuralNetworkTests
-
-    NeuralNetworkTests.TestBatchNorm().setUp()
-    NeuralNetworkTests.TestBatchNorm()

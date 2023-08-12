@@ -191,11 +191,3 @@ class Conv2d(BaseLayer):
             # Common mistake: pruning the bias usually harms model accuracy too much. (https://www.tensorflow.org/model_optimization/guide/pruning/comprehensive_guide#:~:text=Common%20mistake%3A%20pruning%20the%20bias%20usually%20harms%20model%20accuracy%20too%20much.)
         return output
 
-
-if __name__ == "__main__":
-
-    from tests.NeuralNetworkTests import TestConv
-
-    tests = TestConv()
-    tests.setUp()
-    tests.test_forward_size_stride_uneven_image()
