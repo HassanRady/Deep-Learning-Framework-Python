@@ -6,4 +6,4 @@ class UniformRandom:
         pass
 
     def initialize(self, weights_shape, fan_in, fan_out):
-        reutn np.random.rand(*weights_shape)
+        return np.random.rand(*weights_shape)

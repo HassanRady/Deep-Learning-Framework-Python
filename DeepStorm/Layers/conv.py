@@ -1,16 +1,11 @@
 # TODO: padding type
 
-from DeepStorm.logger import get_file_logger
-from DeepStorm.Layers.Initializers import He, Constant
-from DeepStorm.Layers.Base import BaseLayer
 import numpy as np
-import os
-import sys
-import inspect
-currentdir = os.path.dirname(os.path.abspath(
-    inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0, parentdir)
+
+from DeepStorm.Initializers.he import He
+from DeepStorm.Initializers.constant import Constant
+from DeepStorm.Layers.Base import BaseLayer
+from DeepStorm.logger import get_file_logger
 
 
 _logger = get_file_logger(__name__, 'debug')

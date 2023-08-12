@@ -1,8 +1,7 @@
 import numpy as np
-from Layers.Base import BaseLayer
 
 
-class CrossEntropy:
+class CrossEntropyLoss:
     def __init__(self):
         self.trainable = False
 

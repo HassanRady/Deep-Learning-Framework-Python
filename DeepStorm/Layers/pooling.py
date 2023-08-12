@@ -1,17 +1,10 @@
-from DeepStorm.logger import get_file_logger
 import numpy as np
+
 from DeepStorm.Layers.Base import BaseLayer
-import os
-import sys
-import inspect
-
-currentdir = os.path.dirname(os.path.abspath(
-    inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0, parentdir)
+from DeepStorm.logger import get_file_logger
 
 
-_logger = get_file_logger(__name__, 'logs')
+_logger = get_file_logger(__name__, 'debug')
 
 
 class MaxPool2d(BaseLayer):
