@@ -27,7 +27,7 @@ class Model(object):
         return loss, output
 
     def train_epoch(self):
-        _logger.info(f"Training")
+        _logger.info("Training")
 
         for layer in self.model:
             layer.train()
@@ -56,7 +56,7 @@ class Model(object):
         return epoch_loss, running_preds
 
     def eval_epoch(self):
-        _logger.info(f"Validation")
+        _logger.info("Validation")
 
         for layer in self.model:
             layer.eval()
@@ -86,11 +86,11 @@ class Model(object):
         return epoch_loss, running_preds
 
     def batcher(self, x, y):
-        x = np.array_split(x, len(x)//self.batch_size)
-        y = np.array_split(y, len(y)//self.batch_size)
+        limit = len(x) - len(x)%self.batch_size
+        x = np.split(x[:limit], len(x)//self.batch_size)
+        y = np.split(y[:limit], len(y)//self.batch_size)
         self.data_len = len(x)
-        for x_batch, y_batch in zip(x, y):
-            yield x_batch, y_batch
+        yield from zip(x, y)
 
     def fit(self, x_train, y_train, x_val, y_val, epochs):
         self.x_train = x_train
@@ -149,8 +149,7 @@ class Model(object):
     def calc_accuracy(self, preds, labels):
         preds = np.argmax(preds, axis=1)
         labels = np.argmax(labels, axis=1)
-        accuracy = np.mean(preds == labels)
-        return accuracy
+        return np.mean(preds == labels)
 
     def set_optimizer(self, optimizer):
         for layer in self.model:
