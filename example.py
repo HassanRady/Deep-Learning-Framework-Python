@@ -1,24 +1,27 @@
 from DeepStorm.model import Model
-from DeepStorm.Initializers.Initializers import Xavier, He, UniformRandom, Constant
 from DeepStorm.Layers.conv import Conv2d
 from DeepStorm.Layers.batchNormalization import BatchNorm2d
+from DeepStorm.Layers.dropout import Dropout
 from DeepStorm.Layers.pooling import MaxPool2d
 from DeepStorm.Layers.flatten import Flatten
-from DeepStorm.Layers.dropout import Dropout
 from DeepStorm.Layers.linear import Linear
-from DeepStorm.Layers.ReLU import ReLU
-from DeepStorm.Layers.Sigmoid import Sigmoid
-from DeepStorm.Layers.SoftMax import SoftMax
+from DeepStorm.Initializers.xavier import Xavier
+from DeepStorm.Initializers.he import He
+from DeepStorm.Initializers.uniformRandom import UniformRandom
+from DeepStorm.Initializers.constant import Constant
+from DeepStorm.Activations.relu import ReLU
+from DeepStorm.Activations.sigmoid import Sigmoid
+from DeepStorm.Activations.softmax import SoftMax
+from DeepStorm.Optimizers.adam import Adam
 from DeepStorm.Losses.crossEntropy import CrossEntropyLoss
 
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-
 from sklearn.model_selection import train_test_split
 
 input_folder_path = "Data/"
-train_df = pd.read_csv(f"{input_folder_path}train.csv")[:]
+train_df = pd.read_csv(f"{input_folder_path}train.csv")[:1000]
 test_df = pd.read_csv(f"{input_folder_path}test.csv")
 
 train_labels = train_df['label'].values
