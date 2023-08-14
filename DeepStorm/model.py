@@ -9,11 +9,11 @@ _logger = get_file_logger(__name__, 'logs')
 
 class Model(object):
     def __init__(self, model=None) -> None:
-        self.model = []
+        self.layers = []
         self.fit_output = {}
 
         if isinstance(model, list):
-            self.model = model
+            self.layers = model
 
     def train_step(self, x, y):
         output = self.forward(x)
@@ -29,7 +29,7 @@ class Model(object):
     def train_epoch(self):
         _logger.info("Training")
 
-        for layer in self.model:
+        for layer in self.layers:
             layer.train()
 
         running_preds = []
@@ -58,7 +58,7 @@ class Model(object):
     def eval_epoch(self):
         _logger.info("Validation")
 
-        for layer in self.model:
+        for layer in self.layers:
             layer.eval()
 
         running_preds = []
@@ -132,7 +132,7 @@ class Model(object):
 
     def append_layer(self, layer: BaseLayer):
         if isinstance(layer, BaseLayer):
-            self.model.append(layer)
+            self.layers.append(layer)
 
     def compile(self, optimizer, loss, batch_size, metrics: list):
         self.batch_size = batch_size
@@ -153,18 +153,18 @@ class Model(object):
         return np.mean(preds == labels)
 
     def set_optimizer(self, optimizer):
-        for layer in self.model:
+        for layer in self.layers:
             if layer.trainable:
                 layer.optimizer = copy.deepcopy(optimizer)
 
     def forward(self, x):
-        for layer in self.model:
+        for layer in self.layers:
             x = layer.forward(x)
         return x
 
     def backward(self, y):
         y = self.loss.backward(y)
-        for layer in reversed(self.model):
+        for layer in reversed(self.layers):
             y = layer.backward(y)
     
     def train(self, x, y, epochs):
