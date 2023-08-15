@@ -1,6 +1,6 @@
 import numpy as np
 
-from DeepStorm.Layers.Base import BaseLayer
+from DeepStorm.Layers.base import BaseLayer
 from DeepStorm.logger import get_file_logger
 
 
@@ -11,12 +11,13 @@ class BatchNorm2d(BaseLayer):
     def __init__(self, num_features, eps=1e-11, momentum=0.8):
         super().__init__()
         self.trainable = True
+        self.training = True
 
         self.num_features = num_features
         self.eps = eps
         self.momentum = momentum
 
-        self.weight = np.ones(num_features)
+        self.weights = np.ones(num_features)
         self.bias = np.zeros(num_features)
 
         self.mean = np.zeros(self.num_features, dtype=np.float64)
@@ -60,14 +61,14 @@ class BatchNorm2d(BaseLayer):
 
         self.input_tensor_normalized = (
             tensor - batch_mean[None, :, None, None])/batch_std[None, :, None, None]
-        input_batch_normalized = self.weight[None, :, None, None] * \
+        input_batch_normalized = self.weights[None, :, None, None] * \
             self.input_tensor_normalized + self.bias[None, :, None, None]
         return input_batch_normalized
 
     def normalize_test(self, tensor):
         input_tensor_normalized = (
             tensor - self.mean[None, :, None, None])/np.sqrt(self.variance[None, :, None, None] + self.eps)
-        input_normalized = self.weight[None, :, None, None] * \
+        input_normalized = self.weights[None, :, None, None] * \
             input_tensor_normalized + self.bias[None, :, None, None]
         return input_normalized
 
@@ -82,19 +83,19 @@ class BatchNorm2d(BaseLayer):
         return self.input_normalized
 
     def backward(self, error_tensor):
-        gradient_weight = np.sum(
+        self.gradient_weights = np.sum(
             error_tensor * self.input_tensor_normalized, axis=(0, 2, 3))
-        gradient_bias = error_tensor.sum(axis=(0, 2, 3))
+        self.gradient_bias = error_tensor.sum(axis=(0, 2, 3))
         gradient_input_normalized = error_tensor * \
-            self.weight[None, :, None, None]
+            self.weights[None, :, None, None]
 
         der_input_tensor = 1./(self.batch_size * np.sqrt(self.variance[None, :, None, None] + self.eps)) * (self.batch_size * gradient_input_normalized -
                                                                                                             gradient_input_normalized.sum(axis=0) -
                                                                                                             self.input_tensor_normalized * np.sum(gradient_input_normalized * self.input_tensor_normalized, axis=0))
         if self.optimizer:
-            self.weight = self.optimizer.calculate_update(
-                self.weight, gradient_weight)
+            self.weights = self.optimizer.calculate_update(
+                self.weights, self.gradient_weights)
             self.bias = self.optimizer.calculate_update(
-                self.bias, gradient_bias)
+                self.bias, self.gradient_bias)
 
         return der_input_tensor

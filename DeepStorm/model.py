@@ -1,5 +1,5 @@
 import copy
-from DeepStorm.Layers.Base import BaseLayer
+from DeepStorm.Layers.base import BaseLayer
 from DeepStorm.logger import get_file_logger
 
 import numpy as np

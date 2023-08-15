@@ -1,6 +1,6 @@
 import numpy as np
 
-from DeepStorm.Layers.Base import BaseLayer
+from DeepStorm.Layers.base import BaseLayer
 from DeepStorm.Initializers.he import He
 from DeepStorm.Initializers.constant import Constant
 from DeepStorm.logger import get_file_logger

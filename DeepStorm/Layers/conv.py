@@ -4,7 +4,7 @@ import numpy as np
 
 from DeepStorm.Initializers.he import He
 from DeepStorm.Initializers.constant import Constant
-from DeepStorm.Layers.Base import BaseLayer
+from DeepStorm.Layers.base import BaseLayer
 from DeepStorm.logger import get_file_logger
 
 

@@ -1,6 +1,6 @@
 import numpy as np
 
-from DeepStorm.Layers.Base import BaseLayer
+from DeepStorm.Layers.base import BaseLayer
 
 
 class Sigmoid(BaseLayer):
