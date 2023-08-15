@@ -170,15 +170,15 @@ class TestBatchNorm2d(unittest.TestCase):
         self.assertAlmostEqual(np.sum(np.square(var)), 0)
 
 
-    def _test_linear_update(self):
-        layer = BatchNorm2d(
-            self.input_tensor.shape[-1])
-        layer.optimizer = Sgd(1)
-        for _ in range(10):
-            output_tensor = layer.forward(self.input_tensor)
-            error_tensor = np.zeros_like(self.input_tensor)
-            error_tensor -= output_tensor
-            layer.backward(error_tensor)
-            new_output_tensor = layer.forward(self.input_tensor)
-            self.assertLess(np.sum(np.power(output_tensor, 2)),
-                            np.sum(np.power(new_output_tensor, 2)))
+    # def _test_linear_update(self):
+    #     layer = BatchNorm2d(
+    #         self.input_tensor.shape[-1])
+    #     layer.optimizer = Sgd(1)
+    #     for _ in range(10):
+    #         output_tensor = layer.forward(self.input_tensor)
+    #         error_tensor = np.zeros_like(self.input_tensor)
+    #         error_tensor -= output_tensor
+    #         layer.backward(error_tensor)
+    #         new_output_tensor = layer.forward(self.input_tensor)
+    #         self.assertLess(np.sum(np.power(output_tensor, 2)),
+    #                         np.sum(np.power(new_output_tensor, 2)))
