@@ -73,7 +73,8 @@ class MaxPool2d(BaseLayer):
 
         for n in range(batch_size):
             for channel in range(output_channels):
-                for slice, i, j, start_dim1, end_dim1, start_dim2, end_dim2 in self.generate_slice(self.input_tensor[n, channel], input_size_dim1, input_size_dim2):
+                for slice, i, j, start_dim1, end_dim1, start_dim2, end_dim2 in self.generate_slice(
+                    self.input_tensor[n, channel], input_size_dim1, input_size_dim2):
 
                     mask = slice == np.max(slice)
                     input_gradient[n, channel, start_dim1:end_dim1,

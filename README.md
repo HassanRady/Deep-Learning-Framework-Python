@@ -16,6 +16,7 @@ pip install DeepStorm
 - Dropout
 - Linear
 - ReLU
+- Sigmoid
 - Softmax
 - SgdWithMomentum
 - Adam

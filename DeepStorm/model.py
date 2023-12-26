@@ -1,5 +1,6 @@
 import copy
 from DeepStorm.Layers.base import BaseLayer
+from DeepStorm.Utils.metrics_calculator import calc_accuracy
 from DeepStorm.logger import get_file_logger
 
 import numpy as np
@@ -8,20 +9,33 @@ _logger = get_file_logger(__name__, 'logs')
 
 
 class Model(object):
-    def __init__(self, model=None) -> None:
+    def __init__(self, layers:list=None) -> None:
         self.layers = []
         self.fit_output = {}
+        if isinstance(layers, list):
+            self.layers = layers
 
-        if isinstance(model, list):
-            self.layers = model
+    def append_layer(self, layer: BaseLayer):
+        if isinstance(layer, BaseLayer):
+            self.layers.append(layer)
 
-    def train_step(self, x, y):
+    def forward(self, x):
+        for layer in self.layers:
+            x = layer.forward(x)
+        return x
+
+    def backward(self, y):
+        y = self.loss.backward(y)
+        for layer in reversed(self.layers):
+            y = layer.backward(y)
+
+    def train_batch(self, x, y):
         output = self.forward(x)
         loss = self.loss.forward(output, y)
         self.backward(y)
         return loss, output
 
-    def val_step(self, x, y):
+    def val_batch(self, x, y):
         output = self.forward(x)
         loss = self.loss.forward(output, y)
         return loss, output
@@ -35,23 +49,23 @@ class Model(object):
         running_preds = []
         running_loss = 0.0
         for x_batch, y_batch in self.batcher(self.x_train, self.y_train):
-            batch_loss, preds = self.train_step(x_batch, y_batch)
+            batch_loss, preds = self.train_batch(x_batch, y_batch)
 
             running_loss += batch_loss
             running_preds.append(preds)
 
-        epoch_loss = running_loss/self.data_len
+        epoch_loss = running_loss/self.num_batch
 
         running_preds = np.array(running_preds)
         running_preds = running_preds.reshape(
             running_preds.shape[0]*running_preds.shape[1], running_preds.shape[2])
 
-        self.calc_metrics(running_preds, self.y_train)
+        metrics_output = self.calc_metrics(running_preds, self.y_train)
 
         print(f"Train loss: {epoch_loss:.2f}")
-        for metric, metric_output in self.metrics_output.items():
+        for metric, metric_output in metrics_output.items():
             self.fit_output[f"{metric}"].append(metric_output)
-            print(f"Train {metric}: {metric_output}")
+            print(f"Train {metric}: {metric_output:.2f}")
 
         return epoch_loss, running_preds
 
@@ -64,49 +78,38 @@ class Model(object):
         running_preds = []
         running_loss = 0.0
         for x_batch, y_batch in self.batcher(self.x_val, self.y_val):
-            batch_loss, preds = self.val_step(x_batch, y_batch)
+            batch_loss, preds = self.val_batch(x_batch, y_batch)
 
             running_loss += batch_loss
             running_preds.append(preds)
 
-        epoch_loss = running_loss/self.data_len
+        epoch_loss = running_loss/self.num_batch
 
         running_preds = np.array(running_preds)
         running_preds = running_preds.reshape(
             running_preds.shape[0]*running_preds.shape[1], running_preds.shape[2])
 
-        self.calc_metrics(running_preds, self.y_val)
+        metrics_output = self.calc_metrics(running_preds, self.y_val)
 
         print(f"Val loss: {epoch_loss:.2f}")
-        for metric, metric_output in self.metrics_output.items():
+        for metric, metric_output in metrics_output.items():
             self.fit_output[f"val_{metric}"].append(metric_output)
-            print(f"Val {metric}: {metric_output}")
+            print(f"Val {metric}: {metric_output:.2f}")
 
-        epoch_loss = batch_loss/self.data_len
         return epoch_loss, running_preds
-
-    def batcher(self, x, y):
-        x_batches = np.split(x, len(x)//self.batch_size)
-        y_batches = np.split(y, len(y)//self.batch_size)
-        self.data_len = len(x_batches)
-        yield from zip(x_batches, y_batches)
+    
+    def batch_size_adjuster(self, x, y):
+        limit = len(x) - len(x)%self.batch_size
+        return x[:limit], y[:limit]
 
     def fit(self, x_train, y_train, x_val, y_val, epochs):
-        limit = len(x_train) - len(x_train)%self.batch_size
-        self.x_train = x_train[:limit]
-        self.y_train = y_train[:limit]
-        limit = len(x_val) - len(x_val)%self.batch_size
-        self.x_val = x_val[:limit]
-        self.y_val = y_val[:limit]
+        self.x_train, self.y_train = self.batch_size_adjuster(x_train, y_train)
+        self.x_val, self.y_val = self.batch_size_adjuster(x_val, y_val)
 
         train_losses = []
         train_preds = []
         val_losses = []
         val_preds = []
-
-        for metric in self.metrics:
-            self.fit_output[f"{metric}"] = []
-            self.fit_output[f"val_{metric}"] = []
 
         for i in range(1, epochs + 1):
             print(f"Epoch {i}: ")
@@ -129,10 +132,14 @@ class Model(object):
 
         return self.fit_output
 
-
-    def append_layer(self, layer: BaseLayer):
-        if isinstance(layer, BaseLayer):
-            self.layers.append(layer)
+    def batcher(self, x, y):
+        if len(x) < self.batch_size:
+            raise ValueError(f"Batch size {self.batch_size} is greater than the number of samples {len(x)}")
+        
+        x_batches = np.split(x, len(x)//self.batch_size)
+        y_batches = np.split(y, len(y)//self.batch_size)
+        self.num_batch = len(x_batches)
+        yield from zip(x_batches, y_batches)
 
     def compile(self, optimizer, loss, batch_size, metrics: list):
         self.batch_size = batch_size
@@ -140,32 +147,22 @@ class Model(object):
         self.set_optimizer(optimizer)
         self.metrics = metrics
 
+        for metric in self.metrics:
+            self.fit_output[f"{metric}"] = []
+            self.fit_output[f"val_{metric}"] = []
+
     def calc_metrics(self, preds, labels):
-        self.metrics_output = {}
+        metrics_output = {}
         for metric in self.metrics:
             if metric == "accuracy":
-                self.metrics_output['accuracy'] = self.calc_accuracy(
+                metrics_output['accuracy'] = calc_accuracy(
                     preds, labels)
-
-    def calc_accuracy(self, preds, labels):
-        preds = np.argmax(preds, axis=1)
-        labels = np.argmax(labels, axis=1)
-        return np.mean(preds == labels)
+        return metrics_output
 
     def set_optimizer(self, optimizer):
         for layer in self.layers:
             if layer.trainable:
                 layer.optimizer = copy.deepcopy(optimizer)
-
-    def forward(self, x):
-        for layer in self.layers:
-            x = layer.forward(x)
-        return x
-
-    def backward(self, y):
-        y = self.loss.backward(y)
-        for layer in reversed(self.layers):
-            y = layer.backward(y)
     
     def train(self, x, y, epochs):
         self.x_train = x

@@ -105,7 +105,7 @@ class Conv2d(BaseLayer):
         if self.is_reduction_kernel:
             return imgs
         return imgs[:, start_pad_dim1:-end_pad_dim1, start_pad_dim2:-end_pad_dim2]
-    
+
     def pad_imgs(self, imgs):
         self.check_padding_type(self.padding)
         if self.padding == "same":
@@ -183,6 +183,6 @@ class Conv2d(BaseLayer):
         if self.optimizer:
             self.weights = self.optimizer.calculate_update(
                 self.weights, self.gradient_weights)
-            # Common mistake: pruning the bias usually harms model accuracy too much. (https://www.tensorflow.org/model_optimization/guide/pruning/comprehensive_guide#:~:text=Common%20mistake%3A%20pruning%20the%20bias%20usually%20harms%20model%20accuracy%20too%20much.)
+            # Common mistake: pruning the bias usually harms model accuracy too much. 
+            # (https://www.tensorflow.org/model_optimization/guide/pruning/comprehensive_guide#:~:text=Common%20mistake%3A%20pruning%20the%20bias%20usually%20harms%20model%20accuracy%20too%20much.)
         return output
-
